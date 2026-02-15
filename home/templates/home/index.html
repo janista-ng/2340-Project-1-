@@ -72,7 +72,7 @@
 
     <div class="nav">
       <div class="nav-left">
-        <a class="nav-btn" href="home.html">
+        <a class="nav-btn" href="{% url 'home.index' %}">
           <img src="{% static 'home/images/home.png' %}" alt="Home">
           <span>Home</span>
         </a>
@@ -80,6 +80,11 @@
         <a class="nav-btn" href="jobs.html">
           <img src="{% static 'home/images/jobs.png' %}" alt="Jobs">
           <span>Jobs</span>
+        </a>
+
+        <a class="nav-btn" href="{% url 'recommendations' %}">
+          <img src="{% static 'home/images/lightbulb.png' %}" alt="Recommendations">
+          <span>Recommendations</span>
         </a>
 
         <a class="nav-btn" href="notifications.html">

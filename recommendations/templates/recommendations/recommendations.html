@@ -1,0 +1,199 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recommendations</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        .banner {
+            background: #8492a1;
+            padding: 14px 18px;
+        }
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .nav-left,
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            flex: 1;
+        }
+        .nav-right {
+            justify-content: flex-end;
+        }
+        .title {
+            flex: 0 0 auto;
+            margin: 0;
+            font-size: 32px;
+            color: #fff;
+            text-align: center;
+        }
+        .nav-btn {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1;
+        }
+        .nav-btn img {
+            width: 28px;   
+            height: 28px;  
+        }
+        .nav-btn:hover {
+            opacity: 0.85;
+        }
+        .container {
+            padding: 24px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .job-block {
+            border: 1px solid #444;
+            padding: 16px; 
+            margin-bottom: 24px;
+        }
+        .job-title {
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+        .meta {
+            font-size: 14px;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+        .card {
+            border: 1px solid #666;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .score {
+            color: #7fd1ff;
+            font-weight: bold;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #333;
+            margin: 12px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="banner">
+    <div class="nav">
+      <div class="nav-left">
+        <a class="nav-btn" href="{% url 'home.index' %}">
+          <img src="{% static 'home/images/home.png' %}" alt="Home">
+          <span>Home</span>
+        </a>
+
+        <a class="nav-btn" href="jobs.html">
+          <img src="{% static 'home/images/jobs.png' %}" alt="Jobs">
+          <span>Jobs</span>
+        </a>
+
+        <a class="nav-btn" href="{% url 'recommendations' %}">
+          <img src="{% static 'home/images/lightbulb.png' %}" alt="Recommendations">
+          <span>Recommendations</spans>
+        </a>
+
+        <a class="nav-btn" href="notifications.html">
+          <img src="{% static 'home/images/appointment-reminders.png' %}" alt="Notifications">
+          <span>Notifications</span>
+        </a>
+      </div>
+
+      <h1 class="title">Recommendations</h1>
+
+      <div class="nav-right">
+        <a class="nav-btn" href="messages.html">
+          <img src="{% static 'home/images/message.png' %}" alt="Messages">
+          <span>Messages</span>
+
+        </a>
+        {% if user.is_authenticated %}
+            <a class="nav-btn" href="{% url 'profile' %}">
+                <img src="{% static 'home/images/profile.png' %}" alt="Profile">
+                <span>Profile</span>
+            </a>
+        {% else %}
+        </a>
+            <a class="nav-btn" href="{% url 'login' %}">
+                <img src="{% static 'home/images/profile.png' %}" alt="Profile">
+                <span>Profile</span>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+</div>
+
+<div class="container">
+    
+    {% if user_profile.role == "recruiter" %}
+        <h2>Your Job Posts</h2>
+
+        {% if job_recommendations %}
+            {% for item in job_recommendations %}
+                <div class="job-block">
+                    <div class="job-title">{{ item.job.title }}</div>
+                    <div class="meta">
+                        Location: {{ item.job.location }}
+                        Required Skills: {{ item.job.required_skills|join:", " }}
+                    </div>
+
+                    {% if item_candidates %}
+                        {% for candidate, score in item.candidates %}
+                            <div class="card">
+                                <strong>{{ candidate.display_name }}</strong><br>
+                                Location: {{ candidate.location }}<br>
+                                Skills: {{candidate.skills|join:", "}}<br>
+                                Match Score: <span class="score">{{ score }}</span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>No recommendations for this job yet.</p>
+                    {% endif %}
+                </div>
+                <hr><hr>
+            {% endfor %}
+        {% else %}
+            <p>You have no job posts yet.</p>
+        {% endif %}
+
+    {% elif user_profile.role == "seeker" %}
+        <h2>Recommended Jobs</h2>
+
+        {% if job_results %}
+            {% for job, score in job_results %}
+                <div class="job-block">
+                    <div class="job-title">{{ job.title }}</div>
+                    <div class="meta">
+                        Company: {{ job.recruiter.display_name }}<br>
+                        Location: {{ job.location }}<br>
+                        Required Skills: {{ job.required_skills|join:", "}}<br>
+                    </div>
+
+                    
+                    Match Score: {{ score }}
+                </div>
+                <hr>
+            {% endfor %}    
+        {% else %}
+            <p>No job recommendations yet.</p>
+        {% endif %}
+    {% endif %}
+</div>    
+</body>
+</html>
