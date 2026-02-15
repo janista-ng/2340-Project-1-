@@ -1,0 +1,115 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TEMP</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+    /* banner that hold all buttons and title*/
+    .banner {
+      background: #8492a1;
+      padding: 14px 18px;
+    }
+    
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    /* groups */
+    .nav-left,
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 22px; /* spacing between buttons */
+      flex: 1;
+    }
+
+    .nav-right {
+      justify-content: flex-end;
+    }
+
+    /* title centered */
+    .title {
+      flex: 0 0 auto;
+      margin: 0;
+      font-size: 32px;
+      color: #fff;
+      text-align: center;
+    }
+
+    /* button styling */
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    .nav-btn img {
+      width: 28px;   
+      height: 28px;  
+      display: block;
+    }
+
+    .nav-btn:hover {
+      opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+  <div class="banner">
+
+
+    <div class="nav">
+      <div class="nav-left">
+        <a class="nav-btn" href="home.html">
+          <img src="{% static 'home/images/home.png' %}" alt="Home">
+          <span>Home</span>
+        </a>
+
+        <a class="nav-btn" href="jobs.html">
+          <img src="{% static 'home/images/jobs.png' %}" alt="Jobs">
+          <span>Jobs</span>
+        </a>
+
+        <a class="nav-btn" href="notifications.html">
+          <img src="{% static 'home/images/appointment-reminders.png' %}" alt="Notifications">
+          <span>Notifications</span>
+        </a>
+      </div>
+
+      <h1 class="title">TEMP</h1>
+
+      <div class="nav-right">
+        <a class="nav-btn" href="messages.html">
+          <img src="{% static 'home/images/message.png' %}" alt="Messages">
+          <span>Messages</span>
+
+        </a>
+        {% if user.is_authenticated %}
+            <a class="nav-btn" href="{% url 'profile' %}">
+                <img src="{% static 'home/images/profile.png' %}" alt="Profile">
+                <span>Profile</span>
+            </a>
+        {% else %}
+        </a>
+            <a class="nav-btn" href="{% url 'login' %}">
+                <img src="{% static 'home/images/profile.png' %}" alt="Profile">
+                <span>Profile</span>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</body>
+</html>
