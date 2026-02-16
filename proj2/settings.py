@@ -37,12 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-<<<<<<< HEAD
-    'jobs'
-=======
     'home',
     'recommendations',
->>>>>>> origin/main
+    'jobs'
 ]
 
 MIDDLEWARE = [
