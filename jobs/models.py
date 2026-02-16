@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Job(models.Model):
-    id = models.Autofield(primary_key=True)
+    id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=255)
     company = models.CharField(max_length=255, blank=True, default="")
     description = models.TextField(blank=True, default="")
