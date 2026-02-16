@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{ job.title }}</title>
+</head>
+<body>
+  <p><a href="{% url 'jobs:job_list' %}">← Back to Jobs</a></p>
+
+  <h1>{{ job.title }}</h1>
+
+  {% if job.company %}<p><b>Company:</b> {{ job.company }}</p>{% endif %}
+  {% if job.location %}<p><b>Location:</b> {{ job.location }}</p>{% endif %}
+  {% if job.description %}<p><b>Description:</b><br>{{ job.description }}</p>{% endif %}
+
+  <hr>
+
+  <h2>Apply</h2>
+
+  {% if user.is_authenticated %}
+    <form method="post" action="{% url 'jobs:apply_job' job.id %}">
+      {% csrf_token %}
+      <label for="note">Tailored note (optional):</label><br>
+      <textarea id="note" name="note" rows="5" cols="60"
+        placeholder="Write a short note to personalize your application..."></textarea><br><br>
+      <button type="submit">One-click apply</button>
+    </form>
+
+    {% if already_applied %}
+      <p><i>You already applied to this job.</i></p>
+    {% endif %}
+  {% else %}
+    <p>You must be logged in to apply.</p>
+    <p><a href="{% url 'login' %}">Log in</a></p>
+  {% endif %}
+
+</body>
+</html>
+EOF
