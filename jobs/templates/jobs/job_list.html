@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Jobs</title>
+</head>
+<body>
+  <h1>Jobs</h1>
+
+  {% if jobs %}
+    <ul>
+      {% for job in jobs %}
+        <li>
+          <a href="{% url 'jobs:job_detail' job.id %}">
+            {{ job.title }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No jobs posted yet.</p>
+  {% endif %}
+</body>
+</html>
+EOF
