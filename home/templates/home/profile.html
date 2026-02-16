@@ -1,0 +1,370 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Profile</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    .banner {
+      background: #8492a1;
+      padding: 14px 18px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 28px;
+      color: #fff;
+      text-align: center;
+    }
+
+    .page {
+      padding: 24px 18px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 900px;
+      background: #111;
+      border-radius: 14px;
+      padding: 22px;
+      box-sizing: border-box;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .profile-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 22px;
+      padding-top: 8px;
+    }
+
+    .avatar {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: #8492a1;
+      overflow: hidden;
+      flex: 0 0 auto;
+      margin-top: 10px;
+      border: 3px solid rgba(255,255,255,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .info {
+      flex: 1;
+      margin-top: 10px;
+      <div class="section">
+        <h3 class="section-title">About Me</h3>
+            <p class="meta">
+            {% if profile.about_me %}
+                {{ profile.about_me|linebreaksbr }}
+            {% else %}
+                —
+            {% endif %}
+            </p>
+    </div>
+    }
+
+    .name {
+      font-size: 28px;
+      margin: 0 0 10px 0;
+    }
+
+    .meta {
+      margin: 0;
+      font-size: 16px;
+      opacity: 0.95;
+      line-height: 1.6;
+    }
+
+    .actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-block;
+      background: #8492a1;
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,0.18);
+    }
+
+    .btn:hover { opacity: 0.9; }
+
+    label {
+      display: block;
+      margin: 10px 0 6px 0;
+      font-weight: 700;
+    }
+
+    input[type="text"], input[type="file"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    .errorlist {
+      color: #ffb3b3;
+      margin: 6px 0 0 0;
+      padding-left: 18px;
+      font-weight: 700;
+    }
+
+    .small {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-top: 6px;
+    }
+
+    .avatar.clickable {
+        cursor: pointer;
+    }
+    .avatar.clickable:hover {
+        opacity: 0.9;
+    }
+
+    .hidden-file {
+        display: none;
+    }
+
+    .section {
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255,255,255,0.12);
+    }   
+
+    .section-title {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .icon-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #8492a1;
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-weight: 800;
+    }
+    .icon-btn img {
+        width: 20px;
+        height: 20px;
+        display: block;
+    }
+    .icon-btn:hover { opacity: 0.9; }
+
+
+    textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: none;
+        outline: none;
+        box-sizing: border-box;
+        font-size: 16px;
+        resize: vertical;
+    }
+  </style>
+</head>
+<body>
+  <div class="banner">
+    <h1 class="title">TEMP</h1>
+  </div>
+  <div class="page">
+    <div class="card">
+      <div>
+        {% if edit_mode %}
+  
+        <form method="POST" enctype="multipart/form-data" class="profile-row" style="width:100%;">
+    
+            {% csrf_token %}
+
+    
+            <label for="id_profile_image" class="avatar clickable" title="Click to upload">
+      
+                {% if profile.profile_image %}
+        
+                <img id="avatarPreview" src="{{ profile.profile_image.url }}" alt="Profile picture">
+      
+        
+                {% else %}
+        
+                <span id="avatarFallback">{{ user.username|slice:":1"|upper }}</span>
+        
+                <img id="avatarPreview" src="" alt="Profile picture" style="display:none;">
+      
+                {% endif %}
+    
+            </label>
+
+    
+            <div class="info">
+      
+                <h2 class="name">Edit Profile</h2>
+
+      
+                <label for="{{ form.display_name.id_for_label }}">Name</label>
+      
+                {{ form.display_name }}
+      
+                {{ form.display_name.errors }}
+
+      
+                <label for="{{ form.school_or_job.id_for_label }}">Occupation</label>
+      
+                {{ form.school_or_job }}
+      
+                {{ form.school_or_job.errors }}
+
+      
+                <label for="{{ form.location.id_for_label }}">Location</label>
+      
+                {{ form.location }}
+      
+                {{ form.location.errors }}
+
+                <div class="section">
+
+                <label for="{{ form.about_me.id_for_label }}">About Me</label>
+                {{ form.about_me }}
+                {{ form.about_me.errors }}
+                </div>
+
+      
+                <div class="hidden-file">
+        
+                    {{ form.profile_image }}
+        
+                    {{ form.profile_image.errors }}
+      
+                </div>
+
+      
+                <div class="small">Click the circle to choose a new picture, then Save Changes.</div>
+
+      
+                <div class="actions">
+        
+                    <button class="btn" type="submit">Save Changes</button>
+        
+                    <a class="btn secondary" href="{% url 'profile' %}">Cancel</a>
+      
+                </div>
+    
+            </div>
+  
+        </form>
+
+
+        {% else %}
+        
+        <div class="profile-row">
+    
+            <div class="avatar">
+      
+                {% if profile.profile_image %}
+        
+                <img src="{{ profile.profile_image.url }}" alt="Profile picture">
+      
+                {% else %}
+        
+                {{ user.username|slice:":1"|upper }}
+      
+                {% endif %}
+    
+            </div>
+
+    
+            <div class="info">
+      
+                <h2 class="name">
+        
+                    {% if profile.display_name %}{{ profile.display_name }}{% else %}{{ user.username }}{% endif %}
+                </h2>
+                <p class="meta">
+                    <strong>School/Job:</strong>
+                    {% if profile.school_or_job %}{{ profile.school_or_job }}{% else %}—{% endif %}
+                    <br>
+                    <strong>Location:</strong>
+                    {% if profile.location %}{{ profile.location }}{% else %}—{% endif %}
+                </p>
+                <div class="actions">
+                    <a class="icon-btn" href="{% url 'profile' %}?edit=1">
+                        <img src="{% static 'home/images/edit.png' %}" alt="Edit">
+                        Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        </div>
+      </div>
+  </div>
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const fileInput = document.getElementById("id_profile_image");
+    const previewImg = document.getElementById("avatarPreview");
+    const fallbackText = document.getElementById("avatarFallback");
+
+    if (!fileInput) return;
+
+    fileInput.addEventListener("change", function () {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+
+      // only preview images
+      if (!file.type.startsWith("image/")) return;
+
+      const url = URL.createObjectURL(file);
+
+      if (previewImg) {
+        previewImg.src = url;
+        previewImg.style.display = "block";
+      }
+
+      if (fallbackText) {
+        fallbackText.style.display = "none";
+      }
+    });
+  });
+</script>
+</body>
+</html>
