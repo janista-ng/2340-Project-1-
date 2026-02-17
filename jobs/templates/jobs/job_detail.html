@@ -6,8 +6,8 @@
   .content-wrapper {
     width: 100%;
     min-height: 100vh;
-    background: #f5f7fa;  
-    color: #222;          
+    background: #f5f7fa;
+    color: #222;
     font-family: Arial, sans-serif;
     padding: 24px;
     box-sizing: border-box;
@@ -16,18 +16,18 @@
   h1 {
     font-size: 28px;
     margin-bottom: 8px;
-    color: #4f7cac;       
+    color: #4f7cac;
   }
 
   h2 {
-    font-size: 24px;
+    font-size: 22px;
     margin-top: 24px;
     margin-bottom: 12px;
-    color: #4f7cac;       
+    color: #4f7cac;
   }
 
   p {
-    margin: 4px 0;
+    margin: 6px 0;
   }
 
   textarea {
@@ -35,10 +35,10 @@
     padding: 10px;
     border-radius: 8px;
     font-size: 16px;
-    border: 1px solid #ccc; 
+    border: 1px solid #ccc;
     outline: none;
     box-sizing: border-box;
-    background: #fff;        
+    background: #fff;
     color: #222;
   }
 
@@ -48,8 +48,8 @@
     border-radius: 8px;
     font-weight: 700;
     cursor: pointer;
-    background: #4f7cac;    
-    color: #fff;            
+    background: #4f7cac;
+    color: #fff;
     border: none;
   }
 
@@ -58,7 +58,7 @@
   }
 
   a {
-    color: #4f7cac;         
+    color: #4f7cac;
     text-decoration: underline;
   }
 
@@ -83,26 +83,77 @@
   hr {
     margin: 20px 0;
     border: 0;
-    border-top: 1px solid #888; 
+    border-top: 1px solid #ccc;
+  }
+
+  .section {
+    margin-bottom: 16px;
+  }
+
+  .label {
+    font-weight: bold;
   }
 </style>
 
 <div class="content-wrapper">
+
   <p><a href="{% url 'jobs:job_list' %}">← Back to Jobs</a></p>
 
   {% if user.is_authenticated and user == job.recruiter %}
     <p><a class="btn" href="{% url 'jobs:job_edit' job.id %}">Edit Job</a></p>
-  {% endif %}
-
-  {% if user.is_authenticated and user.id == job.recruiter_id %}
     <p><a class="btn" href="{% url 'jobs:job_applications' job.id %}">View Applicants</a></p>
   {% endif %}
 
   <h1>{{ job.title }}</h1>
 
-  {% if job.company %}<p><b>Company:</b> {{ job.company }}</p>{% endif %}
-  {% if job.location %}<p><b>Location:</b> {{ job.location }}</p>{% endif %}
-  {% if job.description %}<p><b>Description:</b><br>{{ job.description }}</p>{% endif %}
+  <hr>
+
+  <div class="section">
+    {% if job.company %}
+      <p><span class="label">Company:</span> {{ job.company }}</p>
+    {% endif %}
+
+    {% if job.salary %}
+      <p><span class="label">Salary:</span> ${{ job.salary }}</p>
+    {% endif %}
+
+    {% if job.city %}
+      <p><span class="label">City:</span> {{ job.city }}</p>
+    {% endif %}
+
+    {% if job.state %}
+      <p><span class="label">State:</span> {{ job.state }}</p>
+    {% endif %}
+
+    {% if job.location %}
+      <p><span class="label">Full Location:</span> {{ job.location }}</p>
+    {% endif %}
+
+    {% if job.remote %}
+      <p><span class="label">Work Type:</span> {{ job.get_remote_display }}</p>
+    {% endif %}
+
+    {% if job.visa_sponsorship %}
+      <p><span class="label">Visa Sponsorship:</span> {{ job.get_visa_sponsorship_display }}</p>
+    {% endif %}
+
+    <p><span class="label">Posted:</span> {{ job.created_at|date:"F d, Y" }}</p>
+    <p><span class="label">Last Updated:</span> {{ job.updated_at|date:"F d, Y" }}</p>
+  </div>
+
+  {% if job.skills %}
+    <div class="section">
+      <h2>Required Skills</h2>
+      <p>{{ job.skills }}</p>
+    </div>
+  {% endif %}
+
+  {% if job.description %}
+    <div class="section">
+      <h2>Description</h2>
+      <p>{{ job.description }}</p>
+    </div>
+  {% endif %}
 
   <hr>
 
@@ -111,8 +162,9 @@
   {% if user.is_authenticated %}
     <form method="post" action="{% url 'jobs:job_apply' job.id %}">
       {% csrf_token %}
-      <label for="note">Tailored note (optional):</label><br>
-      <textarea id="note" name="note" rows="5" placeholder="Write a short note to personalize your application..."></textarea><br>
+      <label for="cover_note">Tailored note (optional):</label><br>
+      <textarea id="cover_note" name="cover_note" rows="5"
+        placeholder="Write a short note to personalize your application..."></textarea>
       <button type="submit">One-click apply</button>
     </form>
 

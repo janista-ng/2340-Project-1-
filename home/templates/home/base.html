@@ -15,119 +15,170 @@
 
     .banner {
       width: 100%;
-      box-sizing: border-box; 
       background: #3e6a8c;
-      padding: 14px 18px;
+      padding: 14px 24px;
+      box-sizing: border-box;
     }
-    
+
     .nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    .nav-left, .nav-right {
+    .nav-left,
+    .nav-right {
       display: flex;
       align-items: center;
-      gap: 22px;
+      gap: 20px;
+      flex-wrap: wrap;
     }
 
-    .nav-right { justify-content: flex-end; }
-
     .title {
-      flex: 0 0 auto;
-      margin: 0;
-      font-size: 32px;
-      color: #fff;
+      flex: 1;
       text-align: center;
+      margin: 0;
+      font-size: 28px;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 1px;
+      min-width: 120px;
     }
 
     .nav-btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       color: #fff;
       text-decoration: none;
-      font-size: 16px;
+      font-size: 15px;
+      white-space: nowrap;
     }
 
     .nav-btn img {
-      width: 28px;
-      height: 28px;
+      width: 22px;
+      height: 22px;
     }
 
-    .nav-btn:hover { opacity: 0.85; }
+    .nav-btn:hover {
+      opacity: 0.85;
+    }
 
     .content {
       padding: 24px 18px;
     }
 
-    h1 { color: #fff; }
-    a { color: #fff; text-decoration: underline; }
     button {
       padding: 10px 14px;
       border-radius: 8px;
       border: none;
       cursor: pointer;
-      background: #8492a1;
+      background: #4f7cac;
       color: #fff;
       font-weight: 700;
     }
-    button:hover { opacity: 0.9; }
-    select, input, textarea { padding: 8px 12px; border-radius: 8px; border: none; }
-    textarea { resize: vertical; }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    select,
+    input,
+    textarea {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    @media (max-width: 900px) {
+      .nav {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .nav-left,
+      .nav-right {
+        justify-content: center;
+      }
+
+      .title {
+        order: -1;
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+    }
+
   </style>
 </head>
+
 <body>
+
   <div class="banner">
     <div class="nav">
+
       <div class="nav-left">
         <a class="nav-btn" href="{% url 'home.index' %}">
           <img src="{% static 'home/images/home.png' %}" alt="Home">
           <span>Home</span>
         </a>
+
         <a class="nav-btn" href="{% url 'jobs:job_list' %}">
           <img src="{% static 'home/images/jobs.png' %}" alt="Jobs">
           <span>Jobs</span>
         </a>
-        <a class="nav-btn" href="{% url 'recommendations' %}">
-          <img src="{% static 'home/images/lightbulb.png' %}" alt="Recommendations">
-          <span>Recommendations</span>
-        </a>
+
         <a class="nav-btn" href="notifications.html">
           <img src="{% static 'home/images/appointment-reminders.png' %}" alt="Notifications">
           <span>Notifications</span>
         </a>
-        {% if user.is_authenticated %}
-          <a class="nav-btn" href="{% url 'jobs:my_applications' %}">My Applications</a>
-        {% endif %}
       </div>
 
       <h1 class="title">TEMP</h1>
 
       <div class="nav-right">
+
+        <a class="nav-btn" href="{% url 'recommendations' %}">
+          <img src="{% static 'home/images/lightbulb.png' %}" alt="Recommendations">
+          <span>Recommendations</span>
+        </a>
+
+        {% if user.is_authenticated %}
+          <a class="nav-btn" href="{% url 'jobs:my_applications' %}">
+            <span>My Applications</span>
+          </a>
+        {% endif %}
+
         <a class="nav-btn" href="messages.html">
           <img src="{% static 'home/images/message.png' %}" alt="Messages">
           <span>Messages</span>
         </a>
+
         {% if user.is_authenticated %}
-            <a class="nav-btn" href="{% url 'profile' %}">
-                <img src="{% static 'home/images/profile.png' %}" alt="Profile">
-                <span>Profile</span>
-            </a>
+          <a class="nav-btn" href="{% url 'profile' %}">
+            <img src="{% static 'home/images/profile.png' %}" alt="Profile">
+            <span>Profile</span>
+          </a>
         {% else %}
-            <a class="nav-btn" href="{% url 'login' %}">
-                <img src="{% static 'home/images/profile.png' %}" alt="Profile">
-                <span>Profile</span>
-            </a>
+          <a class="nav-btn" href="{% url 'login' %}">
+            <img src="{% static 'home/images/profile.png' %}" alt="Profile">
+            <span>Profile</span>
+          </a>
         {% endif %}
+
       </div>
+
     </div>
   </div>
 
   <div class="content">
     {% block content %}{% endblock %}
   </div>
+
 </body>
 </html>

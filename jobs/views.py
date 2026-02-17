@@ -4,25 +4,66 @@ from .models import Job, Application
 from .forms import JobForm, ApplicationForm
 from django.http import HttpResponseForbidden
 from django.contrib import messages
+from django.db.models import Q
 
 
 def job_list(request):
-    query = request.GET.get("q", "")
-    if query:
-        jobs = Job.objects.filter(
-            title__icontains=query
-        ) | Job.objects.filter(
-            company__icontains=query
-        ) | Job.objects.filter(
-            location__icontains=query
-        )
-    else:
-        jobs = Job.objects.all()
+    jobs = Job.objects.all()
 
-    return render(request, "jobs/job_list.html", {
+    query = request.GET.get("q", "")
+    skills_query = request.GET.get("skills", "")
+    city_query = request.GET.get("city", "")
+    state_query = request.GET.get("state", "")
+    min_salary = request.GET.get("min_salary")
+    max_salary = request.GET.get("max_salary")
+
+    remote_filter = request.GET.get("remote")
+    onsite_filter = request.GET.get("onsite")
+    hybrid_filter = request.GET.get("hybrid")
+    visa_filter = request.GET.get("visa")
+
+    if query:
+        jobs = jobs.filter(title__icontains=query)
+    if skills_query:
+        jobs = jobs.filter(skills__icontains=skills_query)
+    if city_query:
+        jobs = jobs.filter(city__icontains=city_query)
+    if state_query:
+        jobs = jobs.filter(state__icontains=state_query)
+    if min_salary:
+        jobs = jobs.filter(salary__gte=int(min_salary))
+    if max_salary:
+        jobs = jobs.filter(salary__lte=int(max_salary))
+
+    remote_values = []
+
+    if remote_filter:
+        remote_values.append("remote")
+    if onsite_filter:
+        remote_values.append("on_site")
+    if hybrid_filter:
+        remote_values.append("hybrid")
+    if remote_values:
+        jobs = jobs.filter(remote__in=remote_values)
+    if visa_filter:
+        jobs = jobs.filter(visa_sponsorship="yes")
+
+    context = {
         "jobs": jobs,
         "query": query,
-    })
+        "skills_query": skills_query,
+        "city_query": city_query,
+        "state_query": state_query,
+        "min_salary": int(min_salary) if min_salary else 0,
+        "max_salary": int(max_salary) if max_salary else 200000,
+        "remote": remote_filter,
+        "onsite": onsite_filter,
+        "hybrid": hybrid_filter,
+        "visa": visa_filter,
+    }
+
+    return render(request, "jobs/job_list.html", context)
+
 
 def job_detail(request, pk):
     job = get_object_or_404(Job, pk=pk)

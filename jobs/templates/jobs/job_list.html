@@ -9,28 +9,36 @@
     background: #f5f7fa;
     color: #222;
     font-family: Arial, sans-serif;
-    padding: 24px 40px; 
+    padding: 24px 40px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    align-items: stretch; 
+    align-items: stretch;
   }
 
   h1 {
     font-size: 28px;
     margin-bottom: 24px;
-    text-align: center; 
+    text-align: center;
     color: #4f7cac;
-  } 
-
-  .search-bar {
-    max-width: 600px;
-    margin: 0 auto 24px auto;
-    display: flex;
-    gap: 10px;
   }
 
-  .search-bar input {
+  .search-bar {
+    max-width: 900px;
+    margin: 0 auto 24px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .search-row, .toggle-group, .salary-slider {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .search-row input {
     flex: 1;
     padding: 10px 14px;
     border-radius: 8px;
@@ -38,13 +46,110 @@
     font-size: 16px;
   }
 
-  .search-bar button {
-    padding: 10px 14px;
+  .salary-slider {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .slider-values {
+    font-size: 14px;
+    color: #555;
+  }
+
+  .slider-container {
+    position: relative;
+    width: 100%;
+    height: 20px;
+  }
+
+  .slider-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #ccc;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+
+  .slider-range {
+    position: absolute;
+    height: 6px;
+    border-radius: 3px;
+    background: #4f7cac;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 20px;
+    background: transparent;
+    position: absolute;
+    top: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #4f7cac;
+    cursor: pointer;
+    border: none;
+    position: relative;
+    z-index: 3;
+    margin-top: -7px;
+  }
+
+  input[type=range]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #4f7cac;
+    cursor: pointer;
+    border: none;
+  }
+
+  .toggle-group {
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .toggle-group button.toggle-btn {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid #4f7cac;
+    background: white;
+    color: #4f7cac;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .toggle-group button.toggle-btn:hover,
+  .toggle-group button.toggle-btn.active {
+    background: #4f7cac;
+    color: white;
+  }
+
+  .toggle-group button.apply-filters {
+    margin-left: auto;
+    background: #4f7cac;
+    color: white;
+  }
+
+  .toggle-group button.clear-filters {
+    background: #ccc;
+    color: #222;
+    font-weight: 700;
     border: none;
     border-radius: 8px;
-    background: #4f7cac;
-    color: #fff;
-    font-weight: 700;
     cursor: pointer;
   }
 
@@ -104,9 +209,39 @@
     <p style="text-align:center;"><a class="btn" href="{% url 'jobs:job_create' %}">Post a Job</a></p>
   {% endif %}
 
-  <form method="GET" class="search-bar">
-    <input type="text" name="q" placeholder="Search jobs..." value="{{ query }}">
-    <button type="submit">Search</button>
+  <form method="GET" class="search-bar" id="filterForm">
+    <div class="search-row">
+      <input type="text" name="q" placeholder="Search jobs..." value="{{ query }}">
+      <input type="text" name="skills" placeholder="Skills..." value="{{ skills_query }}">
+      <input type="text" name="city" placeholder="City..." value="{{ city_query }}">
+      <input type="text" name="state" placeholder="State..." value="{{ state_query }}">
+    </div>
+
+    <div class="salary-slider">
+      <div class="slider-values">
+        Salary: $<span id="minDisplay">{{ min_salary|default:"0" }}</span> - $<span id="maxDisplay">{{ max_salary|default:"200000" }}</span>
+      </div>
+      <div class="slider-container">
+        <div class="slider-track"></div>
+        <div class="slider-range" id="sliderRange"></div>
+        <input type="range" id="minSalary" name="min_salary" min="0" max="200000" value="{{ min_salary|default:"0" }}">
+        <input type="range" id="maxSalary" name="max_salary" min="0" max="200000" value="{{ max_salary|default:"200000" }}">
+      </div>
+    </div>
+
+    <input type="hidden" name="remote" id="remoteInput" value="{{ remote|default_if_none:'' }}">
+    <input type="hidden" name="onsite" id="onsiteInput" value="{{ onsite|default_if_none:'' }}">
+    <input type="hidden" name="hybrid" id="hybridInput" value="{{ hybrid|default_if_none:'' }}">
+    <input type="hidden" name="visa" id="visaInput" value="{{ visa|default_if_none:'' }}">
+
+    <div class="toggle-group">
+      <button type="button" data-value="remote" class="toggle-btn {% if remote %}active{% endif %}">Remote</button>
+      <button type="button" data-value="onsite" class="toggle-btn {% if onsite %}active{% endif %}">On-site</button>
+      <button type="button" data-value="hybrid" class="toggle-btn {% if hybrid %}active{% endif %}">Hybrid</button>
+      <button type="button" data-value="visa" class="toggle-btn {% if visa %}active{% endif %}">Visa Sponsorship</button>
+      <button type="submit" class="apply-filters">Apply Filters</button>
+      <button type="button" class="clear-filters">Clear Filters</button>
+    </div>
   </form>
 
   {% if jobs %}
@@ -115,7 +250,7 @@
         <div class="job-card">
           <h2>{{ job.title }}</h2>
           <p class="meta"><strong>Company:</strong> {{ job.company|default:"—" }}</p>
-          <p class="meta"><strong>Location:</strong> {{ job.location|default:"—" }}</p>
+          <p class="meta"><strong>Location:</strong> {{ job.city|default:"—" }}, {{ job.state|default:"—" }}</p>
           {% if job.description %}
             <p>{{ job.description|truncatechars:120 }}</p>
           {% endif %}
@@ -127,4 +262,49 @@
     <p style="text-align:center;">No jobs posted yet.</p>
   {% endif %}
 </div>
+
+<script>
+  const minSlider = document.getElementById("minSalary");
+  const maxSlider = document.getElementById("maxSalary");
+  const minDisplay = document.getElementById("minDisplay");
+  const maxDisplay = document.getElementById("maxDisplay");
+  const sliderRange = document.getElementById("sliderRange");
+
+  function updateSlider() {
+    let min = parseInt(minSlider.value);
+    let max = parseInt(maxSlider.value);
+
+    if (min > max) {
+      [min, max] = [max, min];
+      minSlider.value = min;
+      maxSlider.value = max;
+    }
+
+    minDisplay.textContent = min.toLocaleString();
+    maxDisplay.textContent = max.toLocaleString();
+
+    const percent1 = (min / parseInt(minSlider.max)) * 100;
+    const percent2 = (max / parseInt(maxSlider.max)) * 100;
+
+    sliderRange.style.left = percent1 + "%";
+    sliderRange.style.width = (percent2 - percent1) + "%";
+  }
+
+  minSlider.addEventListener("input", updateSlider);
+  maxSlider.addEventListener("input", updateSlider);
+  updateSlider();
+
+  const toggleBtns = document.querySelectorAll(".toggle-btn");
+  toggleBtns.forEach(btn => {
+    const hiddenInput = document.getElementById(btn.dataset.value + "Input");
+    btn.addEventListener("click", () => {
+      btn.classList.toggle("active");
+      hiddenInput.value = btn.classList.contains("active") ? "on" : "";
+    });
+  });
+
+  document.querySelector(".clear-filters").addEventListener("click", () => {
+  window.location.href = "{% url 'jobs:job_list' %}";
+});
+</script>
 {% endblock %}
