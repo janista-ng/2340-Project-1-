@@ -104,17 +104,23 @@
 
   <h2>Apply</h2>
 
+  {% if applied %}
+    <p><b>Application submitted!</b></p>
+  {% endif %}
+
+  {% if already_applied_msg or already_applied %}
+    <p><i>You already applied to this job.</i></p>
+  {% endif %}
+
   {% if user.is_authenticated %}
     <form method="post" action="{% url 'jobs:job_apply' job.id %}">
       {% csrf_token %}
-      <label for="note">Tailored note (optional):</label><br>
-      <textarea id="note" name="note" rows="5" placeholder="Write a short note to personalize your application..."></textarea><br>
+        <label for="cover_note">Tailored note (optional):</label><br>
+        <textarea id="cover_note" name="cover_note" rows="5"
+          placeholder="Write a short note to personalize your application..."></textarea><br>
       <button type="submit">One-click apply</button>
     </form>
 
-    {% if already_applied %}
-      <p><i>You already applied to this job.</i></p>
-    {% endif %}
   {% else %}
     <p>You must be logged in to apply.</p>
     <p><a href="{% url 'login' %}">Log in</a></p>
