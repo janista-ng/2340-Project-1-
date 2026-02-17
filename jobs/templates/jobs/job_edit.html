@@ -1,13 +1,13 @@
 {% extends "home/base.html" %}
-{% block title %}Post a Job{% endblock %}
+{% block title %}Edit Job{% endblock %}
 
 {% block content %}
 <style>
   .content-wrapper {
     width: 100%;
     min-height: 100vh;
-    background: #f5f7fa;      
-    color: #222;               
+    background: #f5f7fa;
+    color: #222;
     font-family: Arial, sans-serif;
     padding: 24px;
     box-sizing: border-box;
@@ -16,7 +16,7 @@
   h1 {
     font-size: 28px;
     margin-bottom: 16px;
-    color: #4f7cac;           
+    color: #4f7cac;
   }
 
   input, textarea {
@@ -24,12 +24,9 @@
     padding: 10px;
     border-radius: 8px;
     margin-bottom: 12px;
-    border: 1px solid #ccc;    
-    outline: none;
-    box-sizing: border-box;
+    border: 1px solid #ccc;
     font-size: 16px;
-    background: #fff;           
-    color: #222;              
+    box-sizing: border-box;
   }
 
   button {
@@ -37,34 +34,26 @@
     border-radius: 8px;
     font-weight: 700;
     cursor: pointer;
-    background: #4f7cac;      
-    color: #fff;              
+    background: #4f7cac;
+    color: #fff;
     border: none;
   }
 
-  button:hover {
-    opacity: 0.85;
-  }
+  button:hover { opacity: 0.85; }
 
-  a {
-    color: #4f7cac;           
-    text-decoration: underline;
-  }
-
-  form {
-    max-width: 600px;
-  }
+  form { max-width: 600px; }
+  a { color: #4f7cac; text-decoration: underline; }
 </style>
 
 <div class="content-wrapper">
-  <h1>Post a Job</h1>
+  <h1>Edit Job</h1>
 
   <form method="POST">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Create Job</button>
+    <button type="submit">Save Changes</button>
   </form>
 
-  <p><a href="{% url 'jobs:job_list' %}">← Back to Jobs</a></p>
+  <p><a href="{% url 'jobs:job_detail' job.id %}">← Back to Job</a></p>
 </div>
 {% endblock %}

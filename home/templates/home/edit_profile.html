@@ -1,74 +1,73 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Edit Profile</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #000;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-      box-sizing: border-box;
-    }
+{% extends "home/base.html" %}
+{% block title %}Edit Profile{% endblock %}
 
-    .box {
-      width: 100%;
-      max-width: 520px;
-      background: #8492a1;
-      border-radius: 12px;
-      padding: 26px;
-      box-sizing: border-box;
-    }
+{% block content %}
+<style>
+  .content-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    padding: 24px;
+    box-sizing: border-box;
+    background: #f5f7fa;
+    color: #222;
+    font-family: Arial, sans-serif;
+  }
 
-    .box h1 {
-      margin: 0 0 18px 0;
-      text-align: center;
-      font-size: 26px;
-    }
+  .box {
+    width: 100%;
+    max-width: 520px;
+    background: #8492a1;
+    border-radius: 12px;
+    padding: 26px;
+    box-sizing: border-box;
+    margin: 0 auto; /* center horizontally */
+  }
 
-    form p { margin: 12px 0; }
+  .box h1 {
+    margin: 0 0 18px 0;
+    text-align: center;
+    font-size: 26px;
+    color: #fff;
+  }
 
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 700;
-    }
+  form p { margin: 12px 0; }
 
-    input {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-      box-sizing: border-box;
-      font-size: 16px;
-    }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
 
-    button {
-      width: 100%;
-      margin-top: 14px;
-      padding: 10px 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 800;
-      cursor: pointer;
-    }
+  input, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
 
-    .errorlist {
-      color: #000;
-      font-weight: 800;
-      padding-left: 18px;
-    }
-  </style>
-</head>
-<body>
+  button {
+    width: 100%;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .errorlist {
+    color: #ffb3b3;
+    font-weight: 800;
+    padding-left: 18px;
+    margin-top: 4px;
+  }
+</style>
+
+<div class="content-wrapper">
   <div class="box">
     <h1>Edit Profile</h1>
 
@@ -78,5 +77,5 @@
       <button type="submit">Save</button>
     </form>
   </div>
-</body>
-</html>
+</div>
+{% endblock %}

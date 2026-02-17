@@ -1,103 +1,118 @@
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Sign Up</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #000;
-      color: #fff;
-      font-family: Arial, sans-serif;
+{% extends "home/base.html" %}
+{% block title %}Sign Up{% endblock %}
 
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-    }
+{% block content %}
+<style>
+  .content-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    padding: 24px;
+    box-sizing: border-box;
+    background: #f5f7fa;  
+    color: #222;           
+    font-family: Arial, sans-serif;
+  }
 
-    .box {
-      width: 100%;
-      max-width: 420px;
-      background: #8492a1;
-      border-radius: 12px;
-      padding: 26px;
-      box-sizing: border-box;
-    }
+  .box {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;         
+    border-radius: 12px;
+    padding: 26px;
+    box-sizing: border-box;
+    margin: 0 auto;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
 
-    .box h1 {
-      margin: 0 0 18px 0;
-      text-align: center;
-      font-size: 28px;
-      color: #fff;
-    }
+  .box h1 {
+    margin: 0 0 18px 0;
+    text-align: center;
+    font-size: 28px;
+    color: #4f7cac;           
+  }
 
-    form p {
-      margin: 12px 0;
-    }
+  form p {
+    margin: 12px 0;
+  }
 
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
-    }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #222;
+  }
 
-    input {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-      box-sizing: border-box;
-      font-size: 16px;
-    }
+  input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    outline: none;
+    box-sizing: border-box;
+    font-size: 16px;
+    background: #fff;
+    color: #222;
+  }
 
-    button {
-      width: 100%;
-      margin-top: 14px;
-      padding: 10px 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-    }
+  button {
+    width: 100%;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    background: #4f7cac;      
+    color: #fff;
+  }
 
-    .links {
-      margin-top: 14px;
-      text-align: center;
-    }
+  button:hover {
+    opacity: 0.9;
+  }
 
-    .links a {
-      color: #fff;
-      font-weight: 700;
-      text-decoration: underline;
-    }
+  .links {
+    margin-top: 14px;
+    text-align: center;
+  }
 
-    .errorlist {
-      margin: 8px 0 0 0;
-      padding-left: 18px;
-      color: #000;
-      font-weight: 700;
-    }
+  .links a {
+    color: #4f7cac;           
+    font-weight: 700;
+    text-decoration: underline;
+  }
 
-    .helptext {
-      display: block;
-      margin-top: 6px;
-      font-size: 12px;
-      color: #111;
-      opacity: 0.9;
-    }
-  </style>
-</head>
-<body>
+  .errorlist {
+    margin: 8px 0 0 0;
+    padding-left: 18px;
+    color: #ff4d4d;           
+    font-weight: 700;
+  }
+
+  .helptext {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #555;             
+    opacity: 0.9;
+  }
+</style>
+
+<div class="content-wrapper">
   <div class="box">
     <h1>Sign Up</h1>
 
     <form method="POST">
       {% csrf_token %}
       {{ form.as_p }}
+      <p>
+        <label for="id_role">I am a:</label>
+        <select name="role" id="id_role">
+          <option value="job_seeker">Job Seeker</option>
+          <option value="recruiter">Recruiter</option>
+        </select>
+      </p>
+
       <button type="submit">Create Account</button>
     </form>
 
@@ -105,5 +120,5 @@
       <p>Already have an account? <a href="{% url 'login' %}">Log In</a></p>
     </div>
   </div>
-</body>
-</html>
+</div>
+{% endblock %}

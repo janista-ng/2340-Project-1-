@@ -2,16 +2,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>TEMP</title>
+  <meta charset="utf-8">
+  <title>{% block title %}TEMP{% endblock %}</title>
   <style>
     body {
       margin: 0;
+      min-height: 100vh;
       background: #f5f7fa;
       color: #222;
       font-family: Arial, sans-serif;
     }
-    /* banner that hold all buttons and title*/
+
     .banner {
+      width: 100%;
+      box-sizing: border-box; 
       background: #3e6a8c;
       padding: 14px 18px;
     }
@@ -23,20 +27,14 @@
       gap: 16px;
     }
 
-    /* groups */
-    .nav-left,
-    .nav-right {
+    .nav-left, .nav-right {
       display: flex;
       align-items: center;
-      gap: 22px; /* spacing between buttons */
-      flex: 1;
+      gap: 22px;
     }
 
-    .nav-right {
-      justify-content: flex-end;
-    }
+    .nav-right { justify-content: flex-end; }
 
-    /* title centered */
     .title {
       flex: 0 0 auto;
       margin: 0;
@@ -45,7 +43,6 @@
       text-align: center;
     }
 
-    /* button styling */
     .nav-btn {
       display: inline-flex;
       align-items: center;
@@ -56,37 +53,48 @@
     }
 
     .nav-btn img {
-      width: 28px;   
-      height: 28px;  
-      display: block;
+      width: 28px;
+      height: 28px;
     }
 
-    .nav-btn:hover {
-      opacity: 0.85;
+    .nav-btn:hover { opacity: 0.85; }
+
+    .content {
+      padding: 24px 18px;
     }
+
+    h1 { color: #fff; }
+    a { color: #fff; text-decoration: underline; }
+    button {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: #8492a1;
+      color: #fff;
+      font-weight: 700;
+    }
+    button:hover { opacity: 0.9; }
+    select, input, textarea { padding: 8px 12px; border-radius: 8px; border: none; }
+    textarea { resize: vertical; }
   </style>
 </head>
 <body>
   <div class="banner">
-
-
     <div class="nav">
       <div class="nav-left">
         <a class="nav-btn" href="{% url 'home.index' %}">
           <img src="{% static 'home/images/home.png' %}" alt="Home">
           <span>Home</span>
         </a>
-
         <a class="nav-btn" href="{% url 'jobs:job_list' %}">
           <img src="{% static 'home/images/jobs.png' %}" alt="Jobs">
           <span>Jobs</span>
         </a>
-
         <a class="nav-btn" href="{% url 'recommendations' %}">
           <img src="{% static 'home/images/lightbulb.png' %}" alt="Recommendations">
           <span>Recommendations</span>
         </a>
-
         <a class="nav-btn" href="notifications.html">
           <img src="{% static 'home/images/appointment-reminders.png' %}" alt="Notifications">
           <span>Notifications</span>
@@ -99,7 +107,6 @@
         <a class="nav-btn" href="messages.html">
           <img src="{% static 'home/images/message.png' %}" alt="Messages">
           <span>Messages</span>
-
         </a>
         {% if user.is_authenticated %}
             <a class="nav-btn" href="{% url 'profile' %}">
@@ -107,14 +114,17 @@
                 <span>Profile</span>
             </a>
         {% else %}
-        </a>
             <a class="nav-btn" href="{% url 'login' %}">
                 <img src="{% static 'home/images/profile.png' %}" alt="Profile">
                 <span>Profile</span>
-        </a>
+            </a>
         {% endif %}
       </div>
     </div>
+  </div>
+
+  <div class="content">
+    {% block content %}{% endblock %}
   </div>
 </body>
 </html>
