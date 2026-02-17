@@ -99,6 +99,9 @@
           <img src="{% static 'home/images/appointment-reminders.png' %}" alt="Notifications">
           <span>Notifications</span>
         </a>
+        {% if user.is_authenticated %}
+          <a class="nav-btn" href="{% url 'jobs:my_applications' %}">My Applications</a>
+        {% endif %}
       </div>
 
       <h1 class="title">TEMP</h1>

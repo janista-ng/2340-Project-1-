@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Job, Application
 from .forms import JobForm, ApplicationForm
 from django.http import HttpResponseForbidden
+from django.contrib import messages
 
 
 def job_list(request):
@@ -73,3 +74,38 @@ def job_edit(request, pk):
         form = JobForm(instance=job)
 
     return render(request, 'jobs/job_edit.html', {'form': form, 'job': job})
+
+@login_required
+def my_applications(request):
+    apps = Application.objects.filter(applicant=request.user).select_related('job').order_by('-applied_at')
+    return render(request, 'jobs/my_applications.html', {'applications': apps})
+
+@login_required
+def job_applications(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+
+    # only the recruiter who posted the job can view applicants
+    if request.user != job.recruiter:
+        return HttpResponseForbidden("You are not allowed to view applicants for this job.")
+
+    apps = Application.objects.filter(job=job).select_related('applicant').order_by('-applied_at')
+    return render(request, 'jobs/job_applications.html', {'job': job, 'applications': apps})
+
+@login_required
+def update_application_status(request, app_id):
+    application = get_object_or_404(Application, pk=app_id)
+
+    # only the recruiter who posted the job can update status
+    if request.user != application.job.recruiter:
+        return HttpResponseForbidden("You are not allowed to update this application.")
+
+    if request.method == "POST":
+        new_status = request.POST.get("status", "")
+        valid = dict(Application.STATUS_CHOICES).keys()
+        if new_status in valid:
+            application.status = new_status
+            application.save(update_fields=["status", "updated_at"])
+            messages.success(request, "Status updated.")
+        else:
+            messages.error(request, "Invalid status.")
+    return redirect('jobs:job_applications', pk=application.job.pk)

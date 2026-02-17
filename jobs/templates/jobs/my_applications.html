@@ -1,0 +1,42 @@
+{% extends "home/base.html" %}
+{% block title %}My Applications{% endblock %}
+{% block content %}
+<div style="padding:24px;">
+  <h1>My Applications</h1>
+
+  <style>
+    h1 { color: #222; }
+    a  { color: #4f7cac; }
+  </style>
+
+  {% if applications %}
+    <ul>
+      {% for app in applications %}
+        <li style="margin:10px 0;">
+          <b>{{ app.job.title }}</b>
+          {% if app.job.company %} — {{ app.job.company }}{% endif %}
+          <br>
+
+          <p>
+            <b>Progress:</b>
+            {% for value,label in app.STATUS_CHOICES %}
+              {% if app.status == value %}
+                <span style="font-weight:bold; color:#4f7cac;">{{ label }}</span>
+              {% else %}
+                <span style="color:#999;">{{ label }}</span>
+              {% endif %}
+              {% if not forloop.last %} → {% endif %}
+            {% endfor %}
+          </p>
+          
+          Applied: {{ app.applied_at }}
+          <br>
+          <a href="{% url 'jobs:job_detail' app.job.id %}">View Job</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You haven’t applied to any jobs yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -94,6 +94,10 @@
     <p><a class="btn" href="{% url 'jobs:job_edit' job.id %}">Edit Job</a></p>
   {% endif %}
 
+  {% if user.is_authenticated and user.id == job.recruiter_id %}
+    <p><a class="btn" href="{% url 'jobs:job_applications' job.id %}">View Applicants</a></p>
+  {% endif %}
+
   <h1>{{ job.title }}</h1>
 
   {% if job.company %}<p><b>Company:</b> {{ job.company }}</p>{% endif %}
