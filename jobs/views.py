@@ -77,7 +77,7 @@ def job_create(request):
         form = JobForm(request.POST)
         if form.is_valid():
             job = form.save(commit=False)
-            job.poster = request.user
+            job.recruiter = request.user
             job.save()
             return redirect('jobs:job_detail', pk=job.pk)
     else:
