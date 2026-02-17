@@ -1,22 +1,130 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Jobs</title>
-</head>
-<body>
+{% extends "home/base.html" %}
+{% block title %}Jobs{% endblock %}
+
+{% block content %}
+<style>
+  .content-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    background: #f5f7fa;
+    color: #222;
+    font-family: Arial, sans-serif;
+    padding: 24px 40px; 
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; 
+  }
+
+  h1 {
+    font-size: 28px;
+    margin-bottom: 24px;
+    text-align: center; 
+    color: #4f7cac;
+  } 
+
+  .search-bar {
+    max-width: 600px;
+    margin: 0 auto 24px auto;
+    display: flex;
+    gap: 10px;
+  }
+
+  .search-bar input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+  }
+
+  .search-bar button {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    background: #4f7cac;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .job-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .job-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .job-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+
+  .job-card h2 {
+    font-size: 20px;
+    margin: 0 0 8px 0;
+    color: #4f7cac;
+  }
+
+  .job-card p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: #555;
+  }
+
+  .job-card .meta {
+    font-size: 13px;
+    color: #888;
+  }
+
+  .btn {
+    display: inline-block;
+    margin-top: 10px;
+    background: #4f7cac;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+  }
+</style>
+
+<div class="content-wrapper">
   <h1>Jobs</h1>
 
-  {% if jobs %}
-    <ul>
-      {% for job in jobs %}
-        <li>
-          <a href="{% url 'jobs:job_detail' job.pk %}">{{ job.title }}</a>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No jobs posted yet.</p>
+  {% if user.is_authenticated and user.profile.role == "recruiter" %}
+    <p style="text-align:center;"><a class="btn" href="{% url 'jobs:job_create' %}">Post a Job</a></p>
   {% endif %}
-</body>
-</html>
+
+  <form method="GET" class="search-bar">
+    <input type="text" name="q" placeholder="Search jobs..." value="{{ query }}">
+    <button type="submit">Search</button>
+  </form>
+
+  {% if jobs %}
+    <div class="job-list">
+      {% for job in jobs %}
+        <div class="job-card">
+          <h2>{{ job.title }}</h2>
+          <p class="meta"><strong>Company:</strong> {{ job.company|default:"—" }}</p>
+          <p class="meta"><strong>Location:</strong> {{ job.location|default:"—" }}</p>
+          {% if job.description %}
+            <p>{{ job.description|truncatechars:120 }}</p>
+          {% endif %}
+          <a class="btn" href="{% url 'jobs:job_detail' job.id %}">View Details</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p style="text-align:center;">No jobs posted yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

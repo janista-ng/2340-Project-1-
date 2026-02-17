@@ -8,4 +8,5 @@ urlpatterns = [
     path('post/', views.job_create, name='job_create'),      
     path('<int:pk>/', views.job_detail, name='job_detail'), 
     path('<int:pk>/apply/', views.apply_to_job, name='job_apply'),  
+    path('<int:pk>/edit/', views.job_edit, name='job_edit'),
 ]

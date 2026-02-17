@@ -2,7 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Profile(models.Model):
+    ROLE_CHOICES = [
+        ('seeker', 'Job Seeker'),
+        ('recruiter', 'Recruiter'),
+    ]
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='seeker')
     display_name = models.CharField(max_length=80, blank=True)
     school_or_job = models.CharField(max_length=120, blank=True)
     location = models.CharField(max_length=120, blank=True)

@@ -1,11 +1,98 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>{{ job.title }}</title>
-</head>
-<body>
+{% extends "home/base.html" %}
+{% block title %}{{ job.title }}{% endblock %}
+
+{% block content %}
+<style>
+  .content-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    background: #f5f7fa;  
+    color: #222;          
+    font-family: Arial, sans-serif;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+
+  h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: #4f7cac;       
+  }
+
+  h2 {
+    font-size: 24px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+    color: #4f7cac;       
+  }
+
+  p {
+    margin: 4px 0;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc; 
+    outline: none;
+    box-sizing: border-box;
+    background: #fff;        
+    color: #222;
+  }
+
+  button {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    background: #4f7cac;    
+    color: #fff;            
+    border: none;
+  }
+
+  button:hover {
+    opacity: 0.85;
+  }
+
+  a {
+    color: #4f7cac;         
+    text-decoration: underline;
+  }
+
+  .btn {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: #4f7cac;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .btn:hover { opacity: 0.85; }
+
+  form {
+    max-width: 600px;
+    margin-top: 12px;
+  }
+
+  hr {
+    margin: 20px 0;
+    border: 0;
+    border-top: 1px solid #888; 
+  }
+</style>
+
+<div class="content-wrapper">
   <p><a href="{% url 'jobs:job_list' %}">← Back to Jobs</a></p>
+
+  {% if user.is_authenticated and user == job.recruiter %}
+    <p><a class="btn" href="{% url 'jobs:job_edit' job.id %}">Edit Job</a></p>
+  {% endif %}
 
   <h1>{{ job.title }}</h1>
 
@@ -28,19 +115,15 @@
   {% if user.is_authenticated %}
     <form method="post" action="{% url 'jobs:job_apply' job.id %}">
       {% csrf_token %}
-      <label for="note">Tailored note (optional):</label><br>
-      <textarea id="note" name="note" rows="5" cols="60"
-        placeholder="Write a short note to personalize your application..."></textarea><br><br>
+        <label for="cover_note">Tailored note (optional):</label><br>
+        <textarea id="cover_note" name="cover_note" rows="5"
+          placeholder="Write a short note to personalize your application..."></textarea><br>
       <button type="submit">One-click apply</button>
     </form>
 
-    {% if already_applied %}
-      <p><i>You already applied to this job.</i></p>
-    {% endif %}
   {% else %}
     <p>You must be logged in to apply.</p>
     <p><a href="{% url 'login' %}">Log in</a></p>
   {% endif %}
-
-</body>
-</html>
+</div>
+{% endblock %}

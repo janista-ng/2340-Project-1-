@@ -8,7 +8,7 @@ class Job(models.Model):
     description = models.TextField(blank=True, default="")
     skills = models.TextField(help_text="Please list required skills here")
     salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Please list the annual salary in USD here")
-    poster = models.ForeignKey(User, on_delete=models.CASCADE)
+    recruiter = models.ForeignKey(User, on_delete=models.CASCADE)
     city = models.CharField(max_length=120, blank=True, default="")
     state = models.CharField(max_length=120, blank=True, default="")
     location = models.CharField(max_length=200, null=True, blank=True)
