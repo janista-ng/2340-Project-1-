@@ -17,8 +17,16 @@
 
   <h2>Apply</h2>
 
+  {% if applied %}
+    <p><b>Application submitted!</b></p>
+  {% endif %}
+
+  {% if already_applied_msg or already_applied %}
+    <p><i>You already applied to this job.</i></p>
+  {% endif %}
+
   {% if user.is_authenticated %}
-    <form method="post" action="{% url 'jobs:apply_job' job.id %}">
+    <form method="post" action="{% url 'jobs:job_apply' job.id %}">
       {% csrf_token %}
       <label for="note">Tailored note (optional):</label><br>
       <textarea id="note" name="note" rows="5" cols="60"
@@ -36,4 +44,3 @@
 
 </body>
 </html>
-EOF

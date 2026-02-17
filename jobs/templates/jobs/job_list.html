@@ -11,9 +11,7 @@
     <ul>
       {% for job in jobs %}
         <li>
-          <a href="{% url 'jobs:job_detail' job.id %}">
-            {{ job.title }}
-          </a>
+          <a href="{% url 'jobs:job_detail' job.pk %}">{{ job.title }}</a>
         </li>
       {% endfor %}
     </ul>
@@ -22,4 +20,3 @@
   {% endif %}
 </body>
 </html>
-EOF
