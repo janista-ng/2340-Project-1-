@@ -66,6 +66,7 @@ def job_list(request):
 
 
 def job_detail(request, pk):
+    job = get_object_or_404(Job, pk=pk)
     if not job.is_active and not (
         request.user.is_authenticated and (request.user == job.recruiter or request.user.is_superuser)
     ):

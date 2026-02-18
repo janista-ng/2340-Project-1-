@@ -11,25 +11,26 @@
     background: #f5f7fa;
     color: #222;
     font-family: Arial, sans-serif;
-    padding: 0; /* IMPORTANT: fixes banner being cut off */
+    padding: 0; 
   }
 
   .banner {
     background: #4f7cac;
     padding: 18px 20px;
-    margin: 0;          /* full width */
-    border-radius: 0;   /* full width look (optional) */
+    margin: 0;          
+    border-radius: 0;  
   }
 
   .title {
     margin: 0;
     font-size: 28px;
+    line-height: 0.15;
     color: #fff;
     text-align: center;
   }
 
   .page-pad {
-    padding: 24px; /* move page padding here instead */
+    padding: 24px; 
   }
 
   .card {
@@ -211,7 +212,6 @@
         <form method="POST" enctype="multipart/form-data" class="profile-row">
           {% csrf_token %}
 
-          <!-- Avatar upload button -->
           <label for="id_profile_image" class="avatar clickable" title="Click to upload">
             {% if profile.profile_image %}
               <img id="avatarPreview" src="{{ profile.profile_image.url }}" alt="Profile picture">
