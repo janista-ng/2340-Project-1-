@@ -70,6 +70,41 @@
       opacity: 0.85;
     }
 
+    .messages-container {
+      max-width: 900px;
+      margin: 20px auto 0 auto;
+      padding: 0 18px;
+    }
+
+    .message {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-weight: 600;
+      opacity: 1;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .message.fade-out {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+
+    .message.success {
+      background: #e6f4ea;
+      color: #1e7e34;
+    }
+
+    .message.warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
     .content {
       padding: 24px 18px;
     }
@@ -119,7 +154,6 @@
         flex-wrap: wrap;
       }
     }
-
   </style>
 </head>
 
@@ -182,9 +216,31 @@
     </div>
   </div>
 
+  {% if messages %}
+  <div class="messages-container">
+    {% for message in messages %}
+      <div class="message {{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <div class="content">
     {% block content %}{% endblock %}
   </div>
+
+  <script>
+    setTimeout(function() {
+      const messages = document.querySelectorAll('.message');
+      messages.forEach(function(msg) {
+        msg.classList.add('fade-out');
+        setTimeout(function() {
+          msg.remove();
+        }, 600);
+      });
+    }, 3000);
+  </script>
 
 </body>
 </html>
