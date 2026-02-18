@@ -87,6 +87,13 @@ def job_create(request):
 @login_required
 def apply_to_job(request, pk):
     job = get_object_or_404(Job, pk=pk)
+    existing_application = Application.objects.filter(
+        job=job,
+        applicant=request.user
+    ).first()
+    if existing_application:
+        messages.warning(request, "You have already applied to this job.")
+        return redirect('jobs:job_detail', pk=job.pk)
     if request.method == 'POST':
         form = ApplicationForm(request.POST)
         if form.is_valid():
@@ -94,6 +101,7 @@ def apply_to_job(request, pk):
             application.job = job
             application.applicant = request.user
             application.save()
+            messages.success(request, "Application submitted successfully.")
             return redirect('jobs:job_detail', pk=job.pk)
     else:
         form = ApplicationForm()
@@ -124,8 +132,6 @@ def my_applications(request):
 @login_required
 def job_applications(request, pk):
     job = get_object_or_404(Job, pk=pk)
-
-    # only the recruiter who posted the job can view applicants
     if request.user != job.recruiter:
         return HttpResponseForbidden("You are not allowed to view applicants for this job.")
 
@@ -135,8 +141,6 @@ def job_applications(request, pk):
 @login_required
 def update_application_status(request, app_id):
     application = get_object_or_404(Application, pk=app_id)
-
-    # only the recruiter who posted the job can update status
     if request.user != application.job.recruiter:
         return HttpResponseForbidden("You are not allowed to update this application.")
 
