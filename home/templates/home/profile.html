@@ -7,18 +7,18 @@
   .content-wrapper {
     width: 100%;
     min-height: 100vh;
-    padding: 24px;
     box-sizing: border-box;
-    background: #f5f7fa;   
-    color: #222;          
+    background: #f5f7fa;
+    color: #222;
     font-family: Arial, sans-serif;
+    padding: 0; /* IMPORTANT: fixes banner being cut off */
   }
 
   .banner {
-    background: #4f7cac;   
+    background: #4f7cac;
     padding: 18px 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    margin: 0;          /* full width */
+    border-radius: 0;   /* full width look (optional) */
   }
 
   .title {
@@ -28,10 +28,14 @@
     text-align: center;
   }
 
+  .page-pad {
+    padding: 24px; /* move page padding here instead */
+  }
+
   .card {
     width: 100%;
     max-width: 900px;
-    background: #fff;          
+    background: #fff;
     border-radius: 14px;
     padding: 24px;
     box-sizing: border-box;
@@ -51,7 +55,7 @@
     width: 130px;
     height: 130px;
     border-radius: 50%;
-    background: #4f7cac;       
+    background: #4f7cac;
     overflow: hidden;
     flex: 0 0 auto;
     margin-top: 10px;
@@ -70,15 +74,26 @@
     display: block;
   }
 
+  .avatar.clickable { cursor: pointer; }
+  .avatar.clickable:hover { opacity: 0.9; }
+
   .info {
     flex: 1;
     margin-top: 10px;
+    min-width: 280px;
   }
 
   .name {
     font-size: 28px;
-    margin: 0 0 10px 0;
+    margin: 0 0 6px 0;
     color: #4f7cac;
+  }
+
+  .headline {
+    margin: 0 0 12px 0;
+    color: #444;
+    font-size: 16px;
+    font-weight: 700;
   }
 
   .meta {
@@ -121,7 +136,7 @@
     color: #222;
   }
 
-  input[type="text"], input[type="file"], textarea {
+  input[type="text"], input[type="file"], input[type="email"], input[type="url"], textarea {
     width: 100%;
     padding: 10px 12px;
     border-radius: 10px;
@@ -144,10 +159,8 @@
     font-size: 13px;
     opacity: 0.9;
     margin-top: 6px;
+    color: #555;
   }
-
-  .avatar.clickable { cursor: pointer; }
-  .avatar.clickable:hover { opacity: 0.9; }
 
   .hidden-file { display: none; }
 
@@ -175,12 +188,15 @@
     border-radius: 10px;
     font-weight: 800;
   }
-  .icon-btn img {
-    width: 20px;
-    height: 20px;
-    display: block;
-  }
+  .icon-btn img { width: 20px; height: 20px; display: block; }
   .icon-btn:hover { opacity: 0.9; }
+
+  .link-list a {
+    color: #4f7cac;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .link-list a:hover { text-decoration: underline; }
 </style>
 
 <div class="content-wrapper">
@@ -188,88 +204,189 @@
     <h1 class="title">Profile</h1>
   </div>
 
-  <div class="card">
-    {% if edit_mode %}
-      <form method="POST" enctype="multipart/form-data" class="profile-row">
-        {% csrf_token %}
+  <div class="page-pad">
+    <div class="card">
 
-        <label for="id_profile_image" class="avatar clickable" title="Click to upload">
-          {% if profile.profile_image %}
-            <img id="avatarPreview" src="{{ profile.profile_image.url }}" alt="Profile picture">
-          {% else %}
-            <span id="avatarFallback">{{ user.username|slice:":1"|upper }}</span>
-            <img id="avatarPreview" src="" alt="Profile picture" style="display:none;">
-          {% endif %}
-        </label>
+      {% if edit_mode %}
+        <form method="POST" enctype="multipart/form-data" class="profile-row">
+          {% csrf_token %}
 
-        <div class="info">
-          <h2 class="name">Edit Profile</h2>
+          <!-- Avatar upload button -->
+          <label for="id_profile_image" class="avatar clickable" title="Click to upload">
+            {% if profile.profile_image %}
+              <img id="avatarPreview" src="{{ profile.profile_image.url }}" alt="Profile picture">
+            {% else %}
+              <span id="avatarFallback">{{ user.username|slice:":1"|upper }}</span>
+              <img id="avatarPreview" src="" alt="Profile picture" style="display:none;">
+            {% endif %}
+          </label>
 
-          <label for="{{ form.display_name.id_for_label }}">Name</label>
-          {{ form.display_name }}
-          {{ form.display_name.errors }}
+          <div class="info">
+            <h2 class="name">Edit Profile</h2>
 
-          <label for="{{ form.school_or_job.id_for_label }}">Occupation</label>
-          {{ form.school_or_job }}
-          {{ form.school_or_job.errors }}
+            <label for="{{ form.display_name.id_for_label }}">Name</label>
+            {{ form.display_name }} {{ form.display_name.errors }}
 
-          <label for="{{ form.location.id_for_label }}">Location</label>
-          {{ form.location }}
-          {{ form.location.errors }}
+            <label for="{{ form.headline.id_for_label }}">Headline</label>
+            {{ form.headline }} {{ form.headline.errors }}
 
-          <div class="section">
-            <label for="{{ form.about_me.id_for_label }}">About Me</label>
-            {{ form.about_me }}
-            {{ form.about_me.errors }}
+            <label for="{{ form.school_or_job.id_for_label }}">Occupation</label>
+            {{ form.school_or_job }} {{ form.school_or_job.errors }}
+
+            <label for="{{ form.location.id_for_label }}">Location</label>
+            {{ form.location }} {{ form.location.errors }}
+
+            <div class="section">
+              <div class="section-title">About Me</div>
+              {{ form.about_me }} {{ form.about_me.errors }}
+            </div>
+
+            <div class="section">
+              <div class="section-title">Skills</div>
+              {{ form.skills }} {{ form.skills.errors }}
+            </div>
+
+            <div class="section">
+              <div class="section-title">Education</div>
+              {{ form.education }} {{ form.education.errors }}
+            </div>
+
+            <div class="section">
+              <div class="section-title">Work Experience</div>
+              {{ form.work_experience }} {{ form.work_experience.errors }}
+            </div>
+
+            <div class="section">
+              <div class="section-title">Links</div>
+
+              <label for="{{ form.linkedin_url.id_for_label }}">LinkedIn</label>
+              {{ form.linkedin_url }} {{ form.linkedin_url.errors }}
+
+              <label for="{{ form.github_url.id_for_label }}">GitHub</label>
+              {{ form.github_url }} {{ form.github_url.errors }}
+
+              <label for="{{ form.portfolio_url.id_for_label }}">Portfolio</label>
+              {{ form.portfolio_url }} {{ form.portfolio_url.errors }}
+            </div>
+
+            <div class="section">
+              <div class="section-title">Contact</div>
+
+              <label for="{{ form.contact_email.id_for_label }}">Email</label>
+              {{ form.contact_email }} {{ form.contact_email.errors }}
+
+              <label for="{{ form.contact_phone.id_for_label }}">Phone</label>
+              {{ form.contact_phone }} {{ form.contact_phone.errors }}
+            </div>
+
+            <div class="hidden-file">
+              {{ form.profile_image }} {{ form.profile_image.errors }}
+            </div>
+
+            <div class="small">Click the circle to choose a new picture, then Save Changes.</div>
+
+            <div class="actions">
+              <button class="btn" type="submit">Save Changes</button>
+              <a class="btn secondary" href="{% url 'profile' %}">Cancel</a>
+            </div>
+          </div>
+        </form>
+
+      {% else %}
+        <div class="profile-row">
+          <div class="avatar">
+            {% if profile.profile_image %}
+              <img src="{{ profile.profile_image.url }}" alt="Profile picture">
+            {% else %}
+              {{ user.username|slice:":1"|upper }}
+            {% endif %}
           </div>
 
-          <div class="hidden-file">
-            {{ form.profile_image }}
-            {{ form.profile_image.errors }}
-          </div>
+          <div class="info">
+            <h2 class="name">
+              {% if profile.display_name %}{{ profile.display_name }}{% else %}{{ user.username }}{% endif %}
+            </h2>
 
-          <div class="small">Click the circle to choose a new picture, then Save Changes.</div>
+            {% if profile.headline %}
+              <p class="headline">{{ profile.headline }}</p>
+            {% endif %}
 
-          <div class="actions">
-            <button class="btn" type="submit">Save Changes</button>
-            <a class="btn secondary" href="{% url 'profile' %}">Cancel</a>
+            <p class="meta">
+              <strong>School/Job:</strong> {% if profile.school_or_job %}{{ profile.school_or_job }}{% else %}—{% endif %}<br>
+              <strong>Location:</strong> {% if profile.location %}{{ profile.location }}{% else %}—{% endif %}
+            </p>
+
+            <div class="section">
+              <div class="section-title">About Me</div>
+              <div class="meta">
+                {% if profile.about_me %}{{ profile.about_me|linebreaksbr }}{% else %}—{% endif %}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Skills</div>
+              <div class="meta">
+                {% if profile.skills %}{{ profile.skills|linebreaksbr }}{% else %}—{% endif %}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Education</div>
+              <div class="meta">
+                {% if profile.education %}{{ profile.education|linebreaksbr }}{% else %}—{% endif %}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Work Experience</div>
+              <div class="meta">
+                {% if profile.work_experience %}{{ profile.work_experience|linebreaksbr }}{% else %}—{% endif %}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Links</div>
+              <div class="meta link-list">
+                {% if profile.linkedin_url %}
+                  <div><a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener">LinkedIn</a></div>
+                {% endif %}
+                {% if profile.github_url %}
+                  <div><a href="{{ profile.github_url }}" target="_blank" rel="noopener">GitHub</a></div>
+                {% endif %}
+                {% if profile.portfolio_url %}
+                  <div><a href="{{ profile.portfolio_url }}" target="_blank" rel="noopener">Portfolio</a></div>
+                {% endif %}
+                {% if not profile.linkedin_url and not profile.github_url and not profile.portfolio_url %}
+                  —
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">Contact</div>
+              <div class="meta">
+                <strong>Email:</strong>
+                {% if profile.contact_email %}
+                  <a href="mailto:{{ profile.contact_email }}">{{ profile.contact_email }}</a>
+                {% else %}
+                  —
+                {% endif %}
+                <br>
+                <strong>Phone:</strong> {% if profile.contact_phone %}{{ profile.contact_phone }}{% else %}—{% endif %}
+              </div>
+            </div>
+
+            <div class="actions">
+              <a class="icon-btn" href="{% url 'profile' %}?edit=1">
+                <img src="{% static 'home/images/edit.png' %}" alt="Edit">
+                Edit Profile
+              </a>
+            </div>
           </div>
         </div>
-      </form>
+      {% endif %}
 
-    {% else %}
-      <div class="profile-row">
-        <div class="avatar">
-          {% if profile.profile_image %}
-            <img src="{{ profile.profile_image.url }}" alt="Profile picture">
-          {% else %}
-            {{ user.username|slice:":1"|upper }}
-          {% endif %}
-        </div>
-
-        <div class="info">
-          <h2 class="name">
-            {% if profile.display_name %}{{ profile.display_name }}{% else %}{{ user.username }}{% endif %}
-          </h2>
-          <p class="meta">
-            <strong>School/Job:</strong>
-            {% if profile.school_or_job %}{{ profile.school_or_job }}{% else %}—{% endif %}
-            <br>
-            <strong>Location:</strong>
-            {% if profile.location %}{{ profile.location }}{% else %}—{% endif %}
-            <br>
-            <strong>About Me:</strong>
-            {% if profile.about_me %}{{ profile.about_me|linebreaksbr }}{% else %}—{% endif %}
-          </p>
-          <div class="actions">
-            <a class="icon-btn" href="{% url 'profile' %}?edit=1">
-              <img src="{% static 'home/images/edit.png' %}" alt="Edit">
-              Edit Profile
-            </a>
-          </div>
-        </div>
-      </div>
-    {% endif %}
+    </div>
   </div>
 </div>
 
@@ -285,6 +402,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const file = fileInput.files && fileInput.files[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) return;
+
     const url = URL.createObjectURL(file);
     if (previewImg) { previewImg.src = url; previewImg.style.display = "block"; }
     if (fallbackText) { fallbackText.style.display = "none"; }

@@ -8,7 +8,7 @@ from django.db.models import Q
 
 
 def job_list(request):
-    jobs = Job.objects.all()
+    jobs = Job.objects.filter(is_active=True)
 
     query = request.GET.get("q", "")
     skills_query = request.GET.get("skills", "")
@@ -66,8 +66,12 @@ def job_list(request):
 
 
 def job_detail(request, pk):
-    job = get_object_or_404(Job, pk=pk)
-    return render(request, 'jobs/job_detail.html', {'job': job})
+    if not job.is_active and not (
+        request.user.is_authenticated and (request.user == job.recruiter or request.user.is_superuser)
+    ):
+        return HttpResponseForbidden("This job listing is not available.")
+
+    return render(request, "jobs/job_detail.html", {"job": job})
 
 @login_required
 def job_create(request):

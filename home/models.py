@@ -15,7 +15,13 @@ class Profile(models.Model):
     about_me = models.TextField(blank=True)
     contact_email = models.EmailField(blank=True)
     contact_phone = models.CharField(max_length=30, blank=True)
-    about_me = models.TextField(blank=True)
+    skills = models.TextField(blank=True, default="")
+    headline = models.CharField(max_length=160, blank=True, default="")
+    education = models.TextField(blank=True, default="")
+    work_experience = models.TextField(blank=True, default="")
+    linkedin_url = models.URLField(blank=True, default="")
+    github_url = models.URLField(blank=True, default="") 
+    portfolio_url = models.URLField(blank=True, default="") 
 
 
     def __str__(self):

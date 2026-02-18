@@ -3,8 +3,22 @@ from .models import Job, Application
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
-    list_display = ('title', 'company', 'recruiter', 'city', 'state', 'remote', 'visa_sponsorship', 'created_at')
-    search_fields = ('title', 'company', 'skills', 'city', 'state')
+    list_display = (
+        "title", "company", "recruiter", "city", "state",
+        "remote", "visa_sponsorship", "is_active", "created_at"
+    )
+    search_fields = ("title", "company", "skills", "city", "state", "recruiter__username")
+    list_filter = ("is_active", "remote", "visa_sponsorship", "created_at")
+    actions = ("deactivate_jobs", "activate_jobs")
+
+    @admin.action(description="Deactivate selected jobs (hide from job list)")
+    def deactivate_jobs(self, request, queryset):
+        queryset.update(is_active=False)
+
+    @admin.action(description="Activate selected jobs (show in job list)")
+    def activate_jobs(self, request, queryset):
+        queryset.update(is_active=True)
+
 
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):

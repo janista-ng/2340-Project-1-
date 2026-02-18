@@ -15,12 +15,12 @@
 
   .box {
     width: 100%;
-    max-width: 520px;
+    max-width: 620px;
     background: #8492a1;
     border-radius: 12px;
     padding: 26px;
     box-sizing: border-box;
-    margin: 0 auto; /* center horizontally */
+    margin: 0 auto;
   }
 
   .box h1 {
@@ -36,9 +36,10 @@
     display: block;
     margin-bottom: 6px;
     font-weight: 700;
+    color: #fff;
   }
 
-  input, textarea {
+  input, textarea, select {
     width: 100%;
     padding: 10px 12px;
     border-radius: 8px;
@@ -48,16 +49,37 @@
     font-size: 16px;
   }
 
-  button {
-    width: 100%;
+  textarea { resize: vertical; }
+
+  .actions {
+    display: flex;
+    gap: 12px;
     margin-top: 14px;
+  }
+
+  button, .cancel-btn {
+    flex: 1;
     padding: 10px 12px;
     border: none;
     border-radius: 8px;
     font-size: 16px;
     font-weight: 800;
     cursor: pointer;
+    text-align: center;
+    text-decoration: none;
   }
+
+  button {
+    background: #4f7cac;
+    color: #fff;
+  }
+  button:hover { opacity: 0.9; }
+
+  .cancel-btn {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+  }
+  .cancel-btn:hover { opacity: 0.9; }
 
   .errorlist {
     color: #ffb3b3;
@@ -74,7 +96,11 @@
     <form method="POST" enctype="multipart/form-data">
       {% csrf_token %}
       {{ form.as_p }}
-      <button type="submit">Save</button>
+
+      <div class="actions">
+        <button type="submit">Save</button>
+        <a class="cancel-btn" href="{% url 'profile' %}">Cancel</a>
+      </div>
     </form>
   </div>
 </div>
