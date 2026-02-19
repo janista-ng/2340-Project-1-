@@ -188,39 +188,64 @@
 
       <div class="nav-right">
 
+  
         {% if user.is_authenticated %}
-          <a class="nav-btn" href="{% url 'jobs:my_applications' %}">
-            <span>My Applications</span>
-          </a>
-        {% endif %}
-
-        <a class="nav-btn" href="{% url 'messaging:inbox' %}">
-        {% if user.is_authenticated %}
-          <a class="nav-btn" href="{% url 'privacy' %}">
-            <span>Privacy</span>
-          </a>
-        {% endif %}
-
-        <a class="nav-btn" href="messages.html">
-          <img src="{% static 'home/images/message.png' %}" alt="Messages">
-          <span>Messages</span>
+    
+        <a class="nav-btn" href="{% url 'jobs:my_applications' %}">
+      
+          <span>My Applications</span>
+    
         </a>
 
-        {% if user.is_authenticated %}
-          <a class="nav-btn" href="{% url 'profile' %}">
-            <img src="{% static 'home/images/profile.png' %}" alt="Profile">
-            <span>Profile</span>
-          </a>
-        {% else %}
-          <a class="nav-btn" href="{% url 'login' %}">
-            <img src="{% static 'home/images/profile.png' %}" alt="Profile">
-            <span>Profile</span>
-          </a>
+    
+        <a class="nav-btn" href="{% url 'privacy' %}">
+      
+          <span>Privacy</span>
+    
+        </a>
+  
         {% endif %}
+
+  
+        
+        <a class="nav-btn" href="{% url 'messaging:inbox' %}">
+    
+          <img src="{% static 'home/images/message.png' %}" alt="Messages">
+    
+          <span>Messages</span>
+  
+        </a>
+
+  
+        {% if user.is_authenticated %}
+    
+        <a class="nav-btn" href="{% url 'profile' %}">
+      
+          <img src="{% static 'home/images/profile.png' %}" alt="Profile">
+      
+          <span>Profile</span>
+    
+        </a>
+  
+        {% else %}
+    
+        <a class="nav-btn" href="{% url 'login' %}">
+      
+          <img src="{% static 'home/images/profile.png' %}" alt="Profile">
+      
+          <span>Profile</span>
+    
+        </a>
+  
+        {% endif %}
+
+
 
       </div>
 
+    
     </div>
+  
   </div>
 
   {% if messages %}
