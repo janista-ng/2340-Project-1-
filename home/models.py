@@ -15,7 +15,11 @@ class Profile(models.Model):
     about_me = models.TextField(blank=True)
     contact_email = models.EmailField(blank=True)
     contact_phone = models.CharField(max_length=30, blank=True)
-    skills = models.TextField(blank=True, default="")
+    skills = models.TextField(
+        blank=True,
+        default="",
+        help_text="Please list required skills here seperated by commas, eg. python,sql,java" 
+    )
     headline = models.CharField(max_length=160, blank=True, default="")
     education = models.TextField(blank=True, default="")
     work_experience = models.TextField(blank=True, default="")
