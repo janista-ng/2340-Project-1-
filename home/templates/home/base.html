@@ -194,7 +194,17 @@
           </a>
         {% endif %}
 
+<<<<<<< HEAD
         <a class="nav-btn" href="{% url 'messaging:inbox' %}">
+=======
+        {% if user.is_authenticated %}
+          <a class="nav-btn" href="{% url 'privacy' %}">
+            <span>Privacy</span>
+          </a>
+        {% endif %}
+
+        <a class="nav-btn" href="messages.html">
+>>>>>>> 8bafa59 (Add profile privacy toggles and recruiter public profile view)
           <img src="{% static 'home/images/message.png' %}" alt="Messages">
           <span>Messages</span>
         </a>

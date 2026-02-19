@@ -47,3 +47,18 @@ class ProfileForm(forms.ModelForm):
             "contact_email": forms.EmailInput(attrs={"placeholder": "name@email.com"}),
             "contact_phone": forms.TextInput(attrs={"placeholder": "(123) 456-7890"}),
         }
+
+class PrivacyForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = [
+            "show_contact_email",
+            "show_contact_phone",
+            "show_location",
+            "show_school_or_job",
+            "show_about_me",
+            "show_skills",
+            "show_education",
+            "show_work_experience",
+            "show_links",
+        ]

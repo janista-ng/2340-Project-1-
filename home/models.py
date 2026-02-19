@@ -23,6 +23,16 @@ class Profile(models.Model):
     github_url = models.URLField(blank=True, default="") 
     portfolio_url = models.URLField(blank=True, default="") 
 
+    show_contact_email = models.BooleanField(default=True)
+    show_contact_phone = models.BooleanField(default=True)
+    show_location = models.BooleanField(default=True)
+    show_school_or_job = models.BooleanField(default=True)
+    show_about_me = models.BooleanField(default=True)
+    show_skills = models.BooleanField(default=True)
+    show_education = models.BooleanField(default=True)
+    show_work_experience = models.BooleanField(default=True)
+    show_links = models.BooleanField(default=True)
+
 
     def __str__(self):
         return f"{self.user.username} Profile"
