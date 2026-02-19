@@ -1,0 +1,177 @@
+{% extends "home/base.html" %}
+{% block title %}Conversation{% endblock %}
+
+{% block content %}
+<style>
+  .dm-wrap {
+    max-width: 900px;
+    margin: 18px auto 0 auto;
+    padding: 0 18px 24px 18px;
+  }
+
+  .dm-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 180px); /* feels like IG DM */
+    min-height: 520px;
+  }
+
+  .dm-topbar {
+    background: #4f7cac;
+    padding: 12px 14px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .dm-back {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 900;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.15);
+  }
+
+  .dm-back:hover { opacity: 0.9; }
+
+  .dm-title {
+    font-weight: 900;
+    margin: 0;
+    font-size: 16px;
+  }
+
+  .dm-sub {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.9;
+  }
+
+  .dm-headtext {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .dm-body {
+    flex: 1;
+    padding: 14px;
+    background: #f5f7fa;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .bubble-row {
+    display: flex;
+    width: 100%;
+  }
+
+  .bubble {
+    max-width: 70%;
+    padding: 10px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.35;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .bubble.me {
+    margin-left: auto;
+    background: #4f7cac;
+    color: #fff;
+    border-bottom-right-radius: 6px;
+  }
+
+  .bubble.them {
+    margin-right: auto;
+    background: #fff;
+    color: #222;
+    border-bottom-left-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .bubble-time {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+  }
+
+  .dm-inputbar {
+    padding: 12px;
+    border-top: 1px solid rgba(0,0,0,0.08);
+    background: #fff;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .dm-inputbar input {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 999px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 14px;
+  }
+
+  .dm-send {
+    background: #4f7cac;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+  .dm-send:hover { opacity: 0.9; }
+</style>
+
+<div class="dm-wrap">
+  <div class="dm-card">
+    <div class="dm-topbar">
+      <a class="dm-back" href="{% url 'messaging:inbox' %}">←</a>
+
+      <div class="dm-headtext">
+        <p class="dm-title">{{ thread_title|default:"Conversation" }}</p>
+        <p class="dm-sub">Thread #{{ thread_id }}</p>
+      </div>
+    </div>
+
+    <div class="dm-body" id="dmBody">
+      {% for m in messages %}
+        <div class="bubble-row">
+          <div class="bubble {{ m.side }}">
+            {{ m.text }}
+            {% if m.time %}
+              <div class="bubble-time">{{ m.time }}</div>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <div style="text-align:center; color:#666; font-weight:800; padding:16px;">
+          No messages yet.
+        </div>
+      {% endfor %}
+    </div>
+
+    <form class="dm-inputbar" method="post">
+      {% csrf_token %}
+      <input type="text" name="body" placeholder="Message..." autocomplete="off">
+      <button class="dm-send" type="submit">Send</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Auto-scroll to bottom like IG
+  const dmBody = document.getElementById("dmBody");
+  if (dmBody) dmBody.scrollTop = dmBody.scrollHeight;
+</script>
+{% endblock %}
