@@ -1,0 +1,45 @@
+{% extends "home/base.html" %}
+{% block title %}Public Profile{% endblock %}
+{% block content %}
+<div style="padding:24px;">
+  <h1 style="color:#222;">{{ profile.display_name|default:profile.user.username }}</h1>
+
+  {% if profile.show_school_or_job and profile.school_or_job %}
+    <p><b>School/Job:</b> {{ profile.school_or_job }}</p>
+  {% endif %}
+
+  {% if profile.show_location and profile.location %}
+    <p><b>Location:</b> {{ profile.location }}</p>
+  {% endif %}
+
+  {% if profile.show_about_me and profile.about_me %}
+    <p><b>About:</b><br>{{ profile.about_me }}</p>
+  {% endif %}
+
+  {% if profile.show_skills and profile.skills %}
+    <p><b>Skills:</b><br>{{ profile.skills }}</p>
+  {% endif %}
+
+  {% if profile.show_education and profile.education %}
+    <p><b>Education:</b><br>{{ profile.education }}</p>
+  {% endif %}
+
+  {% if profile.show_work_experience and profile.work_experience %}
+    <p><b>Work Experience:</b><br>{{ profile.work_experience }}</p>
+  {% endif %}
+
+  {% if profile.show_links %}
+    {% if profile.linkedin_url %}<p><b>LinkedIn:</b> {{ profile.linkedin_url }}</p>{% endif %}
+    {% if profile.github_url %}<p><b>GitHub:</b> {{ profile.github_url }}</p>{% endif %}
+    {% if profile.portfolio_url %}<p><b>Portfolio:</b> {{ profile.portfolio_url }}</p>{% endif %}
+  {% endif %}
+
+  {% if profile.show_contact_email and profile.contact_email %}
+    <p><b>Email:</b> {{ profile.contact_email }}</p>
+  {% endif %}
+
+  {% if profile.show_contact_phone and profile.contact_phone %}
+    <p><b>Phone:</b> {{ profile.contact_phone }}</p>
+  {% endif %}
+</div>
+{% endblock %}

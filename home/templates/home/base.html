@@ -195,6 +195,13 @@
         {% endif %}
 
         <a class="nav-btn" href="{% url 'messaging:inbox' %}">
+        {% if user.is_authenticated %}
+          <a class="nav-btn" href="{% url 'privacy' %}">
+            <span>Privacy</span>
+          </a>
+        {% endif %}
+
+        <a class="nav-btn" href="messages.html">
           <img src="{% static 'home/images/message.png' %}" alt="Messages">
           <span>Messages</span>
         </a>

@@ -137,11 +137,14 @@ def my_applications(request):
 @login_required
 def job_applications(request, pk):
     job = get_object_or_404(Job, pk=pk)
-    if request.user != job.recruiter:
-        return HttpResponseForbidden("You are not allowed to view applicants for this job.")
 
-    apps = Application.objects.filter(job=job).select_related('applicant').order_by('-applied_at')
-    return render(request, 'jobs/job_applications.html', {'job': job, 'applications': apps})
+    # Only the recruiter who posted the job can see applicants
+    if request.user != job.recruiter:
+        return HttpResponseForbidden("Not allowed.")
+
+    applications = Application.objects.filter(job=job).select_related("applicant").order_by("-applied_at")
+    return render(request, "jobs/job_applications.html", {"job": job, "applications": applications})
+
 
 @login_required
 def update_application_status(request, app_id):

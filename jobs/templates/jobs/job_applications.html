@@ -38,6 +38,7 @@
   }
 
   .applicant-card {
+    position: relative;
     background: #ffffff;
     padding: 12px;
     border-radius: 10px;
@@ -92,7 +93,10 @@
       {% for app in applications %}
         {% if app.status == "applied" %}
           <div class="applicant-card">
-            <b>{{ app.applicant.username }}</b>
+            <a href="{% url 'public_profile' app.applicant.id %}"
+              style="text-decoration:none; color:inherit;">
+              <b>{{ app.applicant.username }}</b>
+            </a>
             {% if app.cover_note %}
               <p><i>{{ app.cover_note }}</i></p>
             {% endif %}
@@ -117,7 +121,10 @@
       {% for app in applications %}
         {% if app.status == "review" %}
           <div class="applicant-card">
-            <b>{{ app.applicant.username }}</b>
+            <a href="{% url 'public_profile' app.applicant.id %}"
+              style="text-decoration:none; color:inherit;">
+              <b>{{ app.applicant.username }}</b>
+            </a>
             {% if app.cover_note %}
               <p><i>{{ app.cover_note }}</i></p>
             {% endif %}
@@ -142,7 +149,14 @@
       {% for app in applications %}
         {% if app.status == "interview" %}
           <div class="applicant-card">
-            <b>{{ app.applicant.username }}</b>
+            <a href="{% url 'public_profile' app.applicant.id %}"
+              style="text-decoration:none; color:inherit;">
+              <b>{{ app.applicant.username }}</b>
+            </a>
+            {% if app.cover_note %}
+              <p><b>Tailored note:</b> {{ app.cover_note }}</p>
+            {% endif %}
+
             {% if app.cover_note %}
               <p><i>{{ app.cover_note }}</i></p>
             {% endif %}
@@ -167,7 +181,10 @@
       {% for app in applications %}
         {% if app.status == "offer" %}
           <div class="applicant-card">
-            <b>{{ app.applicant.username }}</b>
+            <a href="{% url 'public_profile' app.applicant.id %}"
+              style="text-decoration:none; color:inherit;">
+              <b>{{ app.applicant.username }}</b>
+            </a>
             {% if app.cover_note %}
               <p><i>{{ app.cover_note }}</i></p>
             {% endif %}
@@ -192,7 +209,10 @@
       {% for app in applications %}
         {% if app.status == "closed" %}
           <div class="applicant-card">
-            <b>{{ app.applicant.username }}</b>
+            <a href="{% url 'public_profile' app.applicant.id %}"
+              style="text-decoration:none; color:inherit;">
+              <b>{{ app.applicant.username }}</b>
+            </a>
             {% if app.cover_note %}
               <p><i>{{ app.cover_note }}</i></p>
             {% endif %}
