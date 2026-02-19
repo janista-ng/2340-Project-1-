@@ -37,10 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cities_light',
     'home',
     'recommendations',
     'jobs'
 ]
+
+# django-cities-light: US only, cities with population > 15000 (default)
+# https://django-cities-light.readthedocs.io/en/stable-3.x.x/full.html
+CITIES_LIGHT_INCLUDE_COUNTRIES = ['US']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -1,10 +1,31 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Job, Application
-from .forms import JobForm, ApplicationForm
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.contrib import messages
 from django.db.models import Q
+from .models import Job, Application
+from .forms import JobForm, ApplicationForm
+
+
+def _save_city_state_from_form(job, form):
+    """Extract city/state from django-cities-light City selection and save to job."""
+    from cities_light.models import City
+    city_id = form.cleaned_data.get('city')
+    if not city_id:
+        return
+    try:
+        city_id = int(city_id)
+    except (TypeError, ValueError):
+        return
+    try:
+        city = City.objects.get(pk=city_id)
+        job.city = city.name
+        job.state = city.region.geoname_code or city.region.name if city.region else ''
+        if city.latitude and city.longitude:
+            job.latitude = city.latitude
+            job.longitude = city.longitude
+    except City.DoesNotExist:
+        pass
 
 
 def job_list(request):
@@ -72,7 +93,24 @@ def job_detail(request, pk):
     ):
         return HttpResponseForbidden("This job listing is not available.")
 
-    return render(request, "jobs/job_detail.html", {"job": job})
+    already_applied = False
+    if request.user.is_authenticated:
+        already_applied = Application.objects.filter(job=job, applicant=request.user).exists()
+    return render(request, "jobs/job_detail.html", {"job": job, "already_applied": already_applied})
+
+
+def cities_by_region(request):
+    """AJAX endpoint: return cities for a given region (state)."""
+    from cities_light.models import City
+    region_id = request.GET.get('region_id')
+    if not region_id:
+        return JsonResponse({'cities': []})
+    try:
+        cities = City.objects.filter(region_id=region_id).order_by('name').values('id', 'name')
+        return JsonResponse({'cities': list(cities)})
+    except Exception:
+        return JsonResponse({'cities': []})
+
 
 @login_required
 def job_create(request):
@@ -83,6 +121,7 @@ def job_create(request):
         if form.is_valid():
             job = form.save(commit=False)
             job.recruiter = request.user
+            _save_city_state_from_form(job, form)
             job.save()
             return redirect('jobs:job_detail', pk=job.pk)
     else:
@@ -122,7 +161,9 @@ def job_edit(request, pk):
     if request.method == "POST":
         form = JobForm(request.POST, instance=job)
         if form.is_valid():
-            form.save()
+            job = form.save(commit=False)
+            _save_city_state_from_form(job, form)
+            job.save()
             return redirect('jobs:job_detail', pk=job.pk)
     else:
         form = JobForm(instance=job)

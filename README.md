@@ -12,6 +12,38 @@
 
 ---
 
+## Job Location Feature (django-cities-light)
+
+When posting or editing a job, recruiters select **State** first, then **City** from cascading dropdowns. The data comes from [django-cities-light](https://github.com/yourlabs/django-cities-light), which imports GeoNames data (US cities with population > 15,000).
+
+### What was implemented
+
+- **State dropdown** → US regions from django-cities-light
+- **City dropdown** → Loaded via AJAX when state is selected (`GET /jobs/cities/?region_id=X`)
+- **Latitude/longitude** → Stored automatically when a city is selected (for future map features)
+
+### Setup (first-time or new clone)
+
+After `pip install` and `migrate`, populate the cities data:
+
+```bash
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py cities_light  
+```
+
+### Documentation
+
+- [django-cities-light on GitHub](https://github.com/yourlabs/django-cities-light)
+- [django-cities-light docs](https://django-cities-light.readthedocs.io/)
+- [GeoNames](https://www.geonames.org/) – source of city/region data
+
+
+- [sibtc/dependent-dropdown-example](https://github.com/sibtc/dependent-dropdown-example) – Django dependent dropdown tutorial
+- [django-cities-light](https://github.com/yourlabs/django-cities-light) – Data source (Country, Region, City models)
+
+---
+
 ## Context Description
 
 Early-career job seekers often face challenges finding roles that match their skills, interests, and location preferences. At the same time, recruiters struggle to identify and evaluate applicants who are a good fit for their openings, especially when managing large pools of candidates.
@@ -66,8 +98,9 @@ This project is intended to challenge you to think about multiple perspectives (
 python -m venv venv
 venv\Scripts\activate          # Windows
 # source venv/bin/activate     # Mac/Linux
-pip install django
+pip install -r requirements.txt
 python manage.py migrate
+python manage.py cities_light  # Populate US cities (optional, ~5–10 min)
 ```
 
 **Each time you work:**
