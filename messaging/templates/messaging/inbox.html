@@ -1,0 +1,126 @@
+{% extends "home/base.html" %}
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<style>
+  .msg-wrap {
+    max-width: 900px;
+    margin: 18px auto 0 auto;
+    padding: 0 18px 24px 18px;
+  }
+
+  .msg-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,0.08);
+    overflow: hidden; 
+  }
+
+  .msg-header {
+    background: #4f7cac;
+    padding: 14px 16px;
+    text-align: center;
+  }
+
+  .msg-header h1 {
+    margin: 0;
+    color: #fff;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+  }
+
+  .msg-list {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .conv-btn, .msg-card, .msg-list, .conv-row { box-sizing: border-box; }
+
+  .conv-btn {
+    display: block;
+    width: 100%;
+    text-decoration: none;
+    color: inherit;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.10);
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .conv-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.10);
+  }
+
+    .conv-top {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        column-gap: 14px;
+    }   
+
+    .conv-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 900;
+        color: #4f7cac;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .conv-time {
+    flex: 0 0 auto;   
+    white-space: nowrap;
+    padding-left: 12px;
+    }
+
+  .conv-preview {
+    font-size: 12px;
+    opacity: 0.75;      
+    color: #444;
+    white-space: nowrap;
+    justify-self: end;
+    padding-right: 2px;   
+  }
+
+  .empty {
+    padding: 24px;
+    text-align: center;
+    font-weight: 800;
+    color: #555;
+  }
+</style>
+
+<div class="msg-wrap">
+  <div class="msg-card">
+    <div class="msg-header">
+      <h1>Messages</h1>
+    </div>
+    {% if threads %}
+      <div class="msg-list">
+        {% for thread in threads %}
+          <a class="conv-btn" href="{% url 'messaging:thread' thread.id %}">
+            <div class="conv-row">
+                <div class="conv-left">
+                    <p class="conv-title">{{ thread.title|default:"Conversation" }} #{{ thread.id }}</p>
+                    <p class="conv-preview">{{ thread.preview|default:"Click to open conversation" }}</p>
+                </div>
+                <div class="conv-time">
+                    {% if thread.updated_at %}{{ thread.updated_at|date:"M d, g:i A" }}{% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">No messages yet.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
