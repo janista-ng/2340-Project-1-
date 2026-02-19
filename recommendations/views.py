@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from home.models import Profile
+from django.urls import reverse
+from notifications.models import Notification
 
 # Create your views here.
 
@@ -31,9 +33,8 @@ def recommend_candidates(job):
     
     return sorted(ranked, key=lambda x: x[1], reverse=True)
 
-#Shell code for recommending jobs
 def recommend_jobs(profile):
-    jobs = 1 # Should be something like: JobPost.objects.all()
+    jobs = 1 
     ranked = []
 
     for job in jobs:
@@ -57,7 +58,7 @@ def recommendations_page(request):
     profile = request.user.profile
 
     if profile.role == "recruiter":
-        jobs = 1 # should be something like: JobPost.objects.filter(recruiter=profile)
+        jobs = 1 
         job_recommendations = []
 
         for job in jobs:
@@ -82,4 +83,18 @@ def recommendations_page(request):
         })
     
 def recommendations(request):
+    recommended_jobs = []
+    if request.user.is_authenticated:
+        ids = [str(j.id) for j in recommended_jobs] 
+        fingerprint = ",".join(ids)
+        last_fp = request.session.get("last_recs_fp")
+        if fingerprint and fingerprint != last_fp:
+            Notification.objects.create(
+                recipient=request.user,
+                notif_type="recommendation",
+                title="New recommendation",
+                body=f"You have {len(ids)} new recommended jobs.",
+                url=reverse("recommendations"),
+            )
+            request.session["last_recs_fp"] = fingerprint
     return render(request, "recommendations/recommendations.html")

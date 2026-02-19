@@ -1,0 +1,132 @@
+{% extends "home/base.html" %}
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<style>
+  .wrap{
+    max-width: 1100px;
+    margin: 26px auto;
+    padding: 0 18px;
+    box-sizing: border-box;
+  }
+
+  .card{
+    background:#fff;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+
+  .header{
+    background:#4f7cac;
+    color:#fff;
+    font-size: 34px;
+    font-weight: 900;
+    text-align:center;
+    padding: 18px 14px;
+    letter-spacing: 0.5px;
+  }
+
+  .list{ padding: 18px; }
+
+  .row{
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: start;
+    text-decoration: none;
+    color: inherit;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    box-sizing: border-box;
+  }
+
+  .row:hover{ box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+
+  .left{ min-width: 0; }
+
+  .title{
+    margin: 0 0 6px 0;
+    font-size: 16px;
+    font-weight: 900;
+    color: #4f7cac;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .body{
+    margin: 0;
+    font-size: 13px;
+    opacity: 0.75;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .time{
+    font-size: 12px;
+    opacity: 0.65;
+    white-space: nowrap;
+    justify-self: end;
+    padding-right: 2px;
+  }
+
+  .unread{
+    border-left: 6px solid #4f7cac;
+  }
+
+  .empty{
+    text-align:center;
+    opacity: 0.7;
+    padding: 18px 8px;
+  }
+
+  .top-actions{
+    display:flex;
+    justify-content:flex-end;
+    padding: 14px 18px 0 18px;
+    gap: 10px;
+  }
+
+  .btn{
+    background:#4f7cac;
+    color:#fff;
+    border:none;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-weight: 900;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn:hover{ opacity: 0.9; }
+</style>
+
+<div class="wrap">
+  <div class="card">
+    <div class="header">Notifications</div>
+
+    <div class="top-actions">
+      <a class="btn" href="{% url 'notifications:read_all' %}">Mark all read</a>
+    </div>
+
+    <div class="list">
+      {% for n in notifications %}
+        <a class="row {% if not n.is_read %}unread{% endif %}" href="{% url 'notifications:open' n.id %}">
+          <div class="left">
+            <p class="title">{{ n.title }}</p>
+            {% if n.body %}<p class="body">{{ n.body }}</p>{% endif %}
+          </div>
+          <div class="time">{{ n.created_at|date:"M d, g:i A" }}</div>
+        </a>
+      {% empty %}
+        <div class="empty">No notifications yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
