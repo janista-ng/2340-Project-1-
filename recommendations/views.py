@@ -14,9 +14,9 @@ def parse_skills(skill_string):
 
 def recommend_candidates(job):
     seekers = Profile.objects.filter(role="job_seeker") 
-    print("SEEKER COUNT:", seekers.count())
-    print("SEEKERS:", list(Profile.objects.values("role", "skills")))
-    print("JOBS:", list(Job.objects.values("skills")))
+    # print("SEEKER COUNT:", seekers.count())
+    # print("SEEKERS:", list(Profile.objects.values("role", "skills")))
+    # print("JOBS:", list(Job.objects.values("skills")))
     ranked = []
     job_skills = parse_skills(job.skills)
 
@@ -31,7 +31,7 @@ def recommend_candidates(job):
             if s.location.lower() in job.location.lower():
                 score += 1
 
-        print("MATCH:", s.user.username, skill_matches, "SCORE:", score)
+        # print("MATCH:", s.user.username, skill_matches, "SCORE:", score)
 
         if score > 0:
             ranked.append((s, score))
@@ -73,9 +73,9 @@ def recommendations_page(request):
     
     profile = request.user.profile
 
-    print("ROLE:", profile.role)
+    # print("ROLE:", profile.role)
     if profile.role == "recruiter":
-        print("JOB COUNT:", Job.objects.all().count())
+        # print("JOB COUNT:", Job.objects.all().count())
         jobs = Job.objects.filter(recruiter=request.user) 
         job_recommendations = []
 
