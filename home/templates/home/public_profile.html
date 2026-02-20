@@ -3,7 +3,10 @@
 {% block content %}
 <div style="padding:24px;">
   <h1 style="color:#222;">{{ profile.display_name|default:profile.user.username }}</h1>
-
+  
+  {% if user.is_authenticated and user.id != profile.user.id and user.profile.role == "recruiter" %}
+    <a class="btn" href="{% url 'messaging:start_thread' profile.user.id %}">Message</a>
+  {% endif %}
   {% if profile.show_school_or_job and profile.school_or_job %}
     <p><b>School/Job:</b> {{ profile.school_or_job }}</p>
   {% endif %}

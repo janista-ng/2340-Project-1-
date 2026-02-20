@@ -143,8 +143,41 @@ def job_applications(request, pk):
     if request.user != job.recruiter:
         return HttpResponseForbidden("Not allowed.")
 
-    applications = Application.objects.filter(job=job).select_related("applicant").order_by("-applied_at")
-    return render(request, "jobs/job_applications.html", {"job": job, "applications": applications})
+    applications = (
+        Application.objects
+        .filter(job=job)
+        .select_related("applicant", "applicant__profile")
+        .order_by("-applied_at")
+    )
+
+    q = request.GET.get("q", "").strip()
+    skills = request.GET.get("skills", "").strip()
+    location = request.GET.get("location", "").strip()
+
+    if q:
+        applications = applications.filter(
+            Q(applicant__username__icontains=q) |
+            Q(applicant__first_name__icontains=q) |
+            Q(applicant__last_name__icontains=q) |
+            Q(applicant__email__icontains=q) |
+            Q(applicant__profile__display_name__icontains=q)
+        )
+
+    if skills:
+        parts = [s.strip() for s in skills.split(",") if s.strip()]
+        for s in parts:
+            applications = applications.filter(applicant__profile__skills__icontains=s)
+
+    if location:
+        applications = applications.filter(applicant__profile__location__icontains=location)
+
+    return render(request, "jobs/job_applications.html", {
+        "job": job,
+        "applications": applications,
+        "q": q,
+        "skills": skills,
+        "location": location,
+    })
 
 
 @login_required

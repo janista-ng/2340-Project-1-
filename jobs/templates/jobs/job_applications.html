@@ -4,6 +4,22 @@
 {% block content %}
 <style>
   
+  .msg-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  margin-top:8px;
+  padding:6px;
+  border-radius:6px;
+  text-decoration:none;
+  font-weight:700;
+  background:#fff;
+  border:1px solid #4f7cac;
+  color:#4f7cac;
+}
+.msg-btn:hover{ opacity:0.85; }
+.msg-btn:hover{ opacity:0.85; }
   .filter-bar {
   background: #ffffff;
   border-radius: 12px;
@@ -151,12 +167,10 @@
   
   <form method="get" class="filter-bar">
   
+    
     <div class="filter-field">
-    
-      <label>Search</label>
-    
-      <input type="text" name="q" placeholder="username, name, email" value="{{ q }}">
-  
+      <label>Location</label>
+      <input type="text" name="location" placeholder="Atlanta, GA" value="{{ location }}">
     </div>
 
   
@@ -241,6 +255,9 @@
             <a href="{% url 'public_profile' app.applicant.id %}"
               style="text-decoration:none; color:inherit;">
               <b>{{ app.applicant.username }}</b>
+              <a class="msg-btn" href="{% url 'messaging:start_thread' app.applicant.id %}">
+                Message
+              </a>
             </a>
             {% if app.cover_note %}
               <p><i>{{ app.cover_note }}</i></p>
