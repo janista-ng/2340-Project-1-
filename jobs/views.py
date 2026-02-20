@@ -5,6 +5,8 @@ from .forms import JobForm, ApplicationForm
 from django.http import HttpResponseForbidden
 from django.contrib import messages
 from django.db.models import Q
+from home.models import Profile
+
 
 
 def job_list(request):
@@ -138,7 +140,6 @@ def my_applications(request):
 def job_applications(request, pk):
     job = get_object_or_404(Job, pk=pk)
 
-    # Only the recruiter who posted the job can see applicants
     if request.user != job.recruiter:
         return HttpResponseForbidden("Not allowed.")
 
@@ -162,3 +163,55 @@ def update_application_status(request, app_id):
         else:
             messages.error(request, "Invalid status.")
     return redirect('jobs:job_applications', pk=application.job.pk)
+@login_required
+def job_applications(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+
+    if request.user != job.recruiter:
+        return HttpResponseForbidden("Not allowed.")
+
+    applications = (
+        Application.objects
+        .filter(job=job)
+        .select_related("applicant")
+        .order_by("-applied_at")
+    )
+
+    q = request.GET.get("q", "").strip()
+    skills = request.GET.get("skills", "").strip()
+    city = request.GET.get("city", "").strip()
+    state = request.GET.get("state", "").strip()
+
+    if q:
+        applications = applications.filter(
+            Q(applicant__username__icontains=q) |
+            Q(applicant__first_name__icontains=q) |
+            Q(applicant__last_name__icontains=q) |
+            Q(applicant__email__icontains=q)
+        )
+
+    profile_fields = {f.name for f in Profile._meta.get_fields()}
+
+    if city:
+        if "city" in profile_fields:
+            applications = applications.filter(applicant__profile__city__icontains=city)
+        elif "location" in profile_fields:
+            applications = applications.filter(applicant__profile__location__icontains=city)
+
+    if state and "state" in profile_fields:
+        applications = applications.filter(applicant__profile__state__icontains=state)
+
+    if skills and "skills" in profile_fields:
+        tokens = [t.strip() for t in skills.replace(";", ",").split(",") if t.strip()]
+        for t in tokens:
+            applications = applications.filter(applicant__profile__skills__icontains=t)
+
+    context = {
+        "job": job,
+        "applications": applications,
+        "q": q,
+        "skills": skills,
+        "city": city,
+        "state": state,
+    }
+    return render(request, "jobs/job_applications.html", context)
