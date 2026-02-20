@@ -6,7 +6,9 @@ class Job(models.Model):
     title = models.CharField(max_length=255)
     company = models.CharField(max_length=255, blank=True, default="")
     description = models.TextField(blank=True, default="")
-    skills = models.TextField(help_text="Please list required skills here")
+    skills = models.TextField(
+        help_text="Please list required skills here seperated by commas, eg. python, sql, java"
+    )
     salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Please list the annual salary in USD here")
     recruiter = models.ForeignKey(User, on_delete=models.CASCADE)
     city = models.CharField(max_length=120, blank=True, default="")
@@ -21,6 +23,18 @@ class Job(models.Model):
     VISA_CHOICES = (('yes', 'Visa Sponsorship Available'), ('no', 'No Sponsorship Available'))
     visa_sponsorship = models.CharField(max_length=3, choices=VISA_CHOICES)
     is_active = models.BooleanField(default=True) 
+
+    #Formats location off of city and state fields
+    def save(self, *args, **kwargs):
+        if self.city and self.state:
+            self.location = f"{self.city}, {self.state}"
+        elif self.city:
+            self.location = self.city
+        elif self.state:
+            self.location = self.state
+        else:
+            self.location = ""
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
