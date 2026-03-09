@@ -2,63 +2,77 @@ from django.shortcuts import render
 from home.models import Profile
 from django.urls import reverse
 from notifications.models import Notification
+from jobs.models import Job
 
 # Create your views here.
 
-#------------------------------------------------------------
-#   Right now this is a lot of shell code and temp variable/references.
-# This is because I currently need the job model to be created. I also need
-# Profiles and Jobs to have lists of skills for ranking. Profile roles are also
-# needed for differentiating between a job seeker and a recruiter. 
-#
-# Once this is done I'll also need to test around and see if these should be login
-# required. 
-#-------------------------------------------------------------
+def parse_skills(skill_string):
+    if not skill_string:
+        return set()
+    return set(
+        s.strip().lower()
+        for s in skill_string.split(",")
+        if s.strip()
+    )
 
-#Shell code for getting job seekers
 def recommend_candidates(job):
-    seekers = Profile.objects.filter(role = "jobseeker") #Profile needs a role variable that allows to Find JS/R
+    seekers = Profile.objects.filter(role="job_seeker") 
     ranked = []
+    job_skills = parse_skills(job.skills)
 
     for s in seekers:
         score = 0
 
-        skill_matches = set(s.skills) & set(job.required_skills) #Need list of skills on both User and Job Postings
+        user_skills = parse_skills(s.skills)
+        skill_matches = user_skills & job_skills
         score += len(skill_matches) * 2
 
-        if s.location == job.location:
-            score += 1
+        if s.location and job.location:
+            if s.location.lower() in job.location.lower():
+                score += 1
 
-        ranked.append((s, score))
+        if score > 0:
+            ranked.append((s, score))
     
     return sorted(ranked, key=lambda x: x[1], reverse=True)
 
-def recommend_jobs(profile):
-    jobs = 1 
-    ranked = []
+def recommend_jobs(profile, limit=10):
+    user_skills = parse_skills(profile.skills)
+    jobs = Job.objects.all()
+    recommendations = []
 
     for job in jobs:
-        score = 0
+        job_skills = parse_skills(job.skills)
 
-        seeker_skills = set(profile.skills)
-        job_skills = set(job.required_skills)
-        skill_matches = seeker_skills & job_skills
-        score += len(skill_matches) * 2
+        overlap = user_skills.intersection(job_skills)
+        score = len(overlap)
 
         if profile.location and job.location:
-            if profile.location.lower() == job.location.lower():
-                score += 1
+            if profile.location.lower() in job.location.lower():
+                score += 2
         
-        ranked.append((job, score))
-    
-    return sorted(ranked, key=lambda x: x[1], reverse=True)
+        if job.remote == "remote":
+            score += 1
+
+        if score > 0:
+            recommendations.append((job, score))
+        
+    recommendations.sort(key=lambda x: x[1], reverse=True)
+    return recommendations[:limit]  
     
 
 def recommendations_page(request):
+    if not request.user.is_authenticated:
+        return render(request, "recommendations/recommendations.html", {
+            "user_profile": None,
+            "job_recommendations": [],
+            "job_results": []
+        })
+    
     profile = request.user.profile
 
     if profile.role == "recruiter":
-        jobs = 1 
+        jobs = Job.objects.filter(recruiter=request.user)
         job_recommendations = []
 
         for job in jobs:
@@ -68,7 +82,7 @@ def recommendations_page(request):
                 "candidates": candidates
             })
         
-        return render(request, "recommendations.html", {
+        return render(request, "recommendations/recommendations.html", {
             "user_profile": profile,
             "job_recommendations": job_recommendations,
             "job_results": []
@@ -76,7 +90,7 @@ def recommendations_page(request):
     
     else:
         job_results = recommend_jobs(profile)
-        return render(request, "recommendations.html", {
+        return render(request, "recommendations/recommendations.html", {
             "user_profile": profile,
             "job_recommendations": [],
             "job_results": job_results
