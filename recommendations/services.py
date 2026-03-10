@@ -53,5 +53,5 @@ def recommend_jobs(profile, limit=10):
             recommendations.append((job, score))
         
     recommendations.sort(key=lambda x: x[1], reverse=True)
-    return recommendations[:limit]  
+    return recommendations  
     
