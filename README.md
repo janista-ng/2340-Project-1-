@@ -7,8 +7,8 @@
 | **Current Phase** | Sprint 1 |
 | **Preliminary demo** | Feb 17 |
 | **Sprint 1 due** | Feb 19 |
-| **Sprint 2 due** | TBD |
-| **Last Updated** | Feb 17, 2026 |
+| **Sprint 2 due** | Mar 12, 2026 |
+| **Last Updated** | Mar 10, 2026 |
 
 ---
 
