@@ -7,4 +7,5 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path("profile/", views.profile_view, name="profile"),
     path("profiles/<int:user_id>/", views.public_profile_view, name="public_profile"),
+    path("load-more-jobs/", views.load_more_jobs, name="load_more_jobs"),
 ]
