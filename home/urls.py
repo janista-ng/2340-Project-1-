@@ -8,4 +8,5 @@ urlpatterns = [
     path("profile/", views.profile_view, name="profile"),
     path("privacy/", views.privacy_view, name="privacy"),
     path("profiles/<int:user_id>/", views.public_profile_view, name="public_profile"),
+    path("load-more-jobs/", views.load_more_jobs, name="load_more_jobs"),
 ]

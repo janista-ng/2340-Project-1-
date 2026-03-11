@@ -7,6 +7,11 @@ from .models import Profile
 from .forms import ProfileForm
 from .forms import ProfileForm, PrivacyForm
 
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from recommendations.services import recommend_candidates, recommend_jobs
+from django.core.cache import cache
+from jobs.models import Job
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -35,7 +40,38 @@ def profile_view(request):
     })
 
 def index(request):
-    return render(request, "home/index.html")
+    job_results = []
+    job_recommendations = []
+    profile = None
+
+    if request.user.is_authenticated:
+        profile = request.user.profile
+
+        if profile.role == "recruiter":
+            jobs = Job.objects.filter(recruiter=request.user)
+
+            for job in jobs:
+                candidates = recommend_candidates(job)
+                job_recommendations.append({
+                    "job": job,
+                    "candidates": candidates
+                })
+
+        elif profile.role == "job_seeker":
+            cache_key = f"job_recs_user_{request.user.id}"
+            job_results = cache.get(cache_key)
+
+            if job_results is None:
+                job_results = recommend_jobs(profile)
+                cache.set(cache_key, job_results, timeout=300)
+
+            job_results = job_results[:10] 
+
+    return render(request, "home/index.html", {
+        "user_profile": profile,
+        "job_results": job_results,
+        "job_recommendations": job_recommendations
+    })
 
 def signup_view(request):
     if request.method == "POST":
@@ -103,3 +139,33 @@ def public_profile_view(request, user_id):
 
     return render(request, "home/public_profile.html", {"profile": target})
 
+@login_required(login_url="login")
+def load_more_jobs(request):
+    offset = int(request.GET.get("offset", 0))
+    limit = 10
+
+    profile = Profile.objects.get(user=request.user)
+
+    if profile.role != "job_seeker":
+        return JsonResponse({"error": "not allowed"}, status=403)
+
+    cache_key = f"job_recs_user_{request.user.id}"
+    jobs_with_scores = cache.get(cache_key)
+
+    if jobs_with_scores is None:
+        jobs_with_scores = recommend_jobs(profile)  
+        cache.set(cache_key, jobs_with_scores, timeout=300)
+
+    jobs_slice = jobs_with_scores[offset:offset+limit]
+    next_offset = offset + len(jobs_slice)
+
+    html = render_to_string(
+        "home/partials/job_cards.html",
+        {"job_results": jobs_slice},
+        request=request
+    )
+
+    return JsonResponse({
+        "html": html,
+        "next_offset": next_offset
+    })
