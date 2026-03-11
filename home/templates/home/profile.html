@@ -4,6 +4,103 @@
 
 {% block content %}
 <style>
+    
+  .toggle-list {
+  
+    display: grid;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+
+  .toggle-row {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 16px;
+
+    padding: 12px 14px;
+
+    border: 1px solid rgba(0,0,0,0.08);
+
+    border-radius: 12px;
+
+    background: #f8fafc;
+    margin: 0;
+  }
+
+
+  .toggle-text {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+
+  }
+
+
+  .toggle-title {
+
+    font-weight: 800;
+
+    color: #222;
+
+    font-size: 15px;
+
+  }
+
+
+  .toggle-sub {
+    color: #666;
+    font-size: 13px;
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 52px;
+    height: 30px;
+    flex: 0 0 auto;
+  }
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #cbd5e1;
+    border-radius: 999px;
+    transition: 0.2s ease;
+    cursor: pointer;
+  }
+  .toggle-slider::before {
+    content: "";
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    left: 4px;
+    top: 4px;
+    background: #fff;
+    border-radius: 50%;
+    transition: 0.2s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  .toggle-switch input:checked + .toggle-slider {
+    background: #4f7cac;
+  }
+  .toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(22px);
+  }
+
   .content-wrapper {
     width: 100%;
     min-height: 100vh;
@@ -278,6 +375,136 @@
               <label for="{{ form.contact_phone.id_for_label }}">Phone</label>
               {{ form.contact_phone }} {{ form.contact_phone.errors }}
             </div>
+            <div class="section">
+  
+              <div class="section-title">Privacy</div>
+
+  
+              <div class="toggle-list">
+  
+                <label class="toggle-row" for="{{ form.show_school_or_job.id_for_label }}">
+  
+                  <div class="toggle-text">
+  
+                    <span class="toggle-title">Show Occupation</span>
+  
+                    <span class="toggle-sub">Let others see your school or job.</span>
+  
+                  </div>
+  
+                  <span class="toggle-switch">
+  
+                    {{ form.show_school_or_job }}
+  
+                    <span class="toggle-slider"></span>
+  
+                  </span>
+  
+                </label>
+  
+                {{ form.show_school_or_job.errors }}
+
+
+    
+                <label class="toggle-row" for="{{ form.show_location.id_for_label }}">
+    
+    <div class="toggle-text">
+    
+    <span class="toggle-title">Show Location</span>
+        <span class="toggle-sub">Let others see your location.</span>
+      </div>
+      <span class="toggle-switch">
+        {{ form.show_location }}
+        <span class="toggle-slider"></span>
+      </span>
+    </label>
+    {{ form.show_location.errors }}
+
+    <label class="toggle-row" for="{{ form.show_about_me.id_for_label }}">
+      <div class="toggle-text">
+        <span class="toggle-title">Show About Me</span>
+        <span class="toggle-sub">Display your about section publicly.</span>
+      </div>
+      <span class="toggle-switch">
+        {{ form.show_about_me }}
+        <span class="toggle-slider"></span>
+      </span>
+    </label>
+    {{ form.show_about_me.errors }}
+
+    <label class="toggle-row" for="{{ form.show_skills.id_for_label }}">
+      <div class="toggle-text">
+        <span class="toggle-title">Show Skills</span>
+        <span class="toggle-sub">Display your skills on your public page.</span>
+      </div>
+      <span class="toggle-switch">
+        {{ form.show_skills }}
+        <span class="toggle-slider"></span>
+      </span>
+    </label>
+    {{ form.show_skills.errors }}
+
+    <label class="toggle-row" for="{{ form.show_education.id_for_label }}">
+      <div class="toggle-text">
+        <span class="toggle-title">Show Education</span>
+        <span class="toggle-sub">Display your education section publicly.</span>
+      </div>
+      <span class="toggle-switch">
+        {{ form.show_education }}
+        <span class="toggle-slider"></span>
+      </span>
+    </label>
+    {{ form.show_education.errors }}
+
+    <label class="toggle-row" for="{{ form.show_work_experience.id_for_label }}">
+      <div class="toggle-text">
+        <span class="toggle-title">Show Work Experience</span>
+        <span class="toggle-sub">Display your work history publicly.</span>
+      </div>
+      <span class="toggle-switch">
+        {{ form.show_work_experience }}
+        <span class="toggle-slider"></span>
+      </span>
+    </label>
+    {{ form.show_work_experience.errors }}
+
+    <label class="toggle-row" for="{{ form.show_links.id_for_label }}">
+      <div class="toggle-text">
+        <span class="toggle-title">Show Links</span>
+        <span class="toggle-sub">Show LinkedIn, GitHub, and portfolio links.</span>
+      </div>
+      <span class="toggle-switch">
+        {{ form.show_links }}
+        <span class="toggle-slider"></span>
+      </span>
+    </label>
+    {{ form.show_links.errors }}
+
+    <label class="toggle-row" for="{{ form.show_contact_email.id_for_label }}">
+      <div class="toggle-text">
+        <span class="toggle-title">Show Email</span>
+        <span class="toggle-sub">Allow others to see your email button.</span>
+      </div>
+      <span class="toggle-switch">
+        {{ form.show_contact_email }}
+        <span class="toggle-slider"></span>
+      </span>
+    </label>
+    {{ form.show_contact_email.errors }}
+
+    <label class="toggle-row" for="{{ form.show_contact_phone.id_for_label }}">
+      <div class="toggle-text">
+        <span class="toggle-title">Show Phone</span>
+        <span class="toggle-sub">Display your phone number publicly.</span>
+      </div>
+      <span class="toggle-switch">
+        {{ form.show_contact_phone }}
+        <span class="toggle-slider"></span>
+      </span>
+    </label>
+    {{ form.show_contact_phone.errors }}
+  </div>
+</div>
 
             <div class="hidden-file">
               {{ form.profile_image }} {{ form.profile_image.errors }}
