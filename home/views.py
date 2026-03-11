@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Profile
 from .forms import ProfileForm
-from .forms import ProfileForm, PrivacyForm
+
 
 
 from django.shortcuts import render, redirect
@@ -18,7 +18,6 @@ def profile_view(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
-        # Save edits
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
@@ -72,31 +71,16 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect("login") #all code above is for sign in and sign up with redirects
+    return redirect("login") 
 
-@login_required(login_url="login")
-def privacy_view(request):
-    profile, _ = Profile.objects.get_or_create(user=request.user)
-
-    if request.method == "POST":
-        form = PrivacyForm(request.POST, instance=profile)
-        if form.is_valid():
-            form.save()
-            return redirect("profile")
-    else:
-        form = PrivacyForm(instance=profile)
-
-    return render(request, "home/privacy.html", {"form": form})
 
 @login_required(login_url="login")
 def public_profile_view(request, user_id):
     target = Profile.objects.select_related("user").get(user__id=user_id)
 
-    # allow viewing your own profile always
     if request.user.id == user_id:
         return redirect("profile")
 
-    # only recruiters can view seekers 
     viewer_profile, _ = Profile.objects.get_or_create(user=request.user)
     if viewer_profile.role != "recruiter":
         return redirect("home.index")
