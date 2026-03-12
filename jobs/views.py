@@ -43,11 +43,13 @@ def job_list(request):
     jobs = Job.objects.filter(is_active=True)
 
     query = request.GET.get("q", "")
-    skills_query = request.GET.get("skills", "")
-    city_query = request.GET.get("city", "")
-    state_query = request.GET.get("state", "")
+    other_query = request.GET.get("other", "")
+    focus_field = request.GET.get("focus", "")
+    if focus_field not in ("q", "other"):
+        focus_field = ""
     min_salary = request.GET.get("min_salary")
     max_salary = request.GET.get("max_salary")
+    radius_miles = request.GET.get("radius_miles")
 
     remote_filter = request.GET.get("remote")
     onsite_filter = request.GET.get("onsite")
@@ -56,19 +58,21 @@ def job_list(request):
 
     if query:
         jobs = jobs.filter(title__icontains=query)
-    if skills_query:
-        jobs = jobs.filter(skills__icontains=skills_query)
-    if city_query:
-        jobs = jobs.filter(city__icontains=city_query)
-    if state_query:
-        jobs = jobs.filter(state__icontains=state_query)
+    if other_query:
+        jobs = jobs.filter(
+            Q(description__icontains=other_query)
+            | Q(skills__icontains=other_query)
+            | Q(company__icontains=other_query)
+            | Q(city__icontains=other_query)
+            | Q(state__icontains=other_query)
+            | Q(location__icontains=other_query)
+        )
     if min_salary:
         jobs = jobs.filter(salary__gte=int(min_salary))
     if max_salary:
         jobs = jobs.filter(salary__lte=int(max_salary))
 
     remote_values = []
-
     if remote_filter:
         remote_values.append("remote")
     if onsite_filter:
@@ -80,18 +84,48 @@ def job_list(request):
     if visa_filter:
         jobs = jobs.filter(visa_sponsorship="yes")
 
+    # Distance filter (commute radius) for seekers with profile location
+    filter_lat = request.GET.get("filter_lat")
+    filter_lng = request.GET.get("filter_lng")
+    if filter_lat and filter_lng and radius_miles and request.user.is_authenticated:
+        try:
+            clat, clng = float(filter_lat), float(filter_lng)
+            radius = float(radius_miles)
+            if radius > 0:
+                jobs_with_loc = jobs.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
+                filtered = [j for j in jobs_with_loc if _haversine_miles(clat, clng, j.latitude, j.longitude) <= radius]
+                job_pks = [j.pk for j in filtered]
+                jobs = Job.objects.filter(pk__in=job_pks) if job_pks else Job.objects.none()
+        except (TypeError, ValueError):
+            pass
+
+    user_lat = user_lng = None
+    user_profile = None
+    if request.user.is_authenticated and hasattr(request.user, "profile"):
+        user_profile = request.user.profile
+        if user_profile.latitude is not None and user_profile.longitude is not None:
+            user_lat, user_lng = float(user_profile.latitude), float(user_profile.longitude)
+
+    jobs_count = jobs.count()
+    total_jobs = Job.objects.filter(is_active=True).count()
+
     context = {
         "jobs": jobs,
+        "jobs_count": jobs_count,
+        "total_jobs": total_jobs,
         "query": query,
-        "skills_query": skills_query,
-        "city_query": city_query,
-        "state_query": state_query,
+        "other_query": other_query,
+        "focus_field": focus_field,
         "min_salary": int(min_salary) if min_salary else 0,
         "max_salary": int(max_salary) if max_salary else 200000,
         "remote": remote_filter,
         "onsite": onsite_filter,
         "hybrid": hybrid_filter,
         "visa": visa_filter,
+        "radius_miles": int(float(radius_miles)) if radius_miles else 0,
+        "user_lat": user_lat,
+        "user_lng": user_lng,
+        "user_profile": user_profile,
     }
 
     return render(request, "jobs/job_list.html", context)
@@ -131,10 +165,23 @@ def cities_by_region(request):
         return JsonResponse({'cities': []})
 
 
+def _haversine_miles(lat1, lon1, lat2, lon2):
+    """Distance in miles between two points (as-the-crow-flies)."""
+    import math
+    R = 3959  # Earth radius in miles
+    lat1, lon1, lat2, lon2 = map(math.radians, [float(lat1), float(lon1), float(lat2), float(lon2)])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+    c = 2 * math.asin(math.sqrt(min(1, a)))
+    return R * c
+
+
 def map_markers(request):
     """
     JSON endpoint for map markers. Returns jobs (and optionally applicant profiles)
     with latitude/longitude for geolocation-based maps.
+    Query params: job_id (recruiter applicants), lat/lng/radius_miles (distance filter).
     """
     jobs = (
         Job.objects.filter(is_active=True)
@@ -142,37 +189,73 @@ def map_markers(request):
         .exclude(longitude__isnull=True)
         .select_related('recruiter')
     )
-    job_pk = request.GET.get('job_id', '').strip()
-    markers = []
-    for job in jobs:
-        markers.append({
-            'type': 'job',
-            'id': job.pk,
-            'title': job.title,
-            'company': job.company,
-            'location': job.location or f"{job.city}, {job.state}".strip(', '),
-            'lat': float(job.latitude),
-            'lng': float(job.longitude),
-            'url': f'/jobs/{job.pk}/',
-        })
-    if job_pk and request.user.is_authenticated:
+    center_lat = request.GET.get('lat')
+    center_lng = request.GET.get('lng')
+    radius_miles = request.GET.get('radius_miles')
+    if center_lat and center_lng and radius_miles:
         try:
-            job = Job.objects.get(pk=int(job_pk), recruiter=request.user)
-            from home.models import Profile
-            for app in job.applications.select_related('applicant').all():
-                profile = Profile.objects.filter(user=app.applicant).first()
-                if profile and profile.latitude and profile.longitude:
-                    markers.append({
-                        'type': 'applicant',
-                        'id': profile.user_id,
-                        'title': profile.display_name or app.applicant.username,
-                        'location': profile.location or '',
-                        'lat': float(profile.latitude),
-                        'lng': float(profile.longitude),
-                        'url': f'/profiles/{profile.user_id}/',
-                    })
-        except (Job.DoesNotExist, ValueError):
+            clat, clng = float(center_lat), float(center_lng)
+            radius = float(radius_miles)
+            filtered = []
+            for job in jobs:
+                if _haversine_miles(clat, clng, job.latitude, job.longitude) <= radius:
+                    filtered.append(job)
+            jobs = filtered
+        except (TypeError, ValueError):
             pass
+    job_pk = request.GET.get('job_id', '').strip()
+    recruiter_applicants_only = request.GET.get('recruiter_applicants') and request.user.is_authenticated and hasattr(request.user, 'profile') and request.user.profile.role == 'recruiter'
+    markers = []
+    if not recruiter_applicants_only:
+        for job in jobs:
+            markers.append({
+                'type': 'job',
+                'id': job.pk,
+                'title': job.title,
+                'company': job.company,
+                'location': job.location or f"{job.city}, {job.state}".strip(', '),
+                'lat': float(job.latitude),
+                'lng': float(job.longitude),
+                'url': f'/jobs/{job.pk}/',
+            })
+    if request.user.is_authenticated:
+        from home.models import Profile
+        if job_pk:
+            try:
+                job = Job.objects.get(pk=int(job_pk), recruiter=request.user)
+                for app in job.applications.select_related('applicant').all():
+                    profile = Profile.objects.filter(user=app.applicant).first()
+                    if profile and profile.latitude and profile.longitude:
+                        markers.append({
+                            'type': 'applicant',
+                            'id': profile.user_id,
+                            'title': profile.display_name or app.applicant.username,
+                            'location': profile.location or '',
+                            'lat': float(profile.latitude),
+                            'lng': float(profile.longitude),
+                            'url': f'/profiles/{profile.user_id}/',
+                        })
+            except (Job.DoesNotExist, ValueError):
+                pass
+        elif request.GET.get('recruiter_applicants') and hasattr(request.user, 'profile') and request.user.profile.role == 'recruiter':
+            # All applicants across recruiter's jobs
+            seen = set()
+            for job in Job.objects.filter(recruiter=request.user):
+                for app in job.applications.select_related('applicant').all():
+                    if app.applicant_id in seen:
+                        continue
+                    seen.add(app.applicant_id)
+                    profile = Profile.objects.filter(user=app.applicant).first()
+                    if profile and profile.latitude and profile.longitude:
+                        markers.append({
+                            'type': 'applicant',
+                            'id': profile.user_id,
+                            'title': profile.display_name or app.applicant.username,
+                            'location': profile.location or '',
+                            'lat': float(profile.latitude),
+                            'lng': float(profile.longitude),
+                            'url': f'/profiles/{profile.user_id}/',
+                        })
     return JsonResponse({'markers': markers})
 
 
