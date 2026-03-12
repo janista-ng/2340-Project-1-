@@ -82,7 +82,7 @@ def index(request):
     profile = None
 
     if request.user.is_authenticated:
-        profile = request.user.profile
+        profile, created = Profile.objects.get_or_create(user=request.user)
 
         if profile.role == "recruiter":
             jobs = Job.objects.filter(recruiter=request.user)
