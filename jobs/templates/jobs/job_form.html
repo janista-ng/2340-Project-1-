@@ -130,11 +130,14 @@
     </div>
 
     <div class="form-row" id="job-pin-drop-section" style="display:none;">
-      <label>Adjust location (optional)</label>
-      <p style="font-size:13px; color:#666; margin-bottom:8px;">Drag the pin to fine-tune the office location. Helps with maps and commute radius.</p>
-      <div id="job-pin-map" style="height:200px; border-radius:8px; border:1px solid #ccc;"></div>
+      <label>Pin office location on map</label>
+      <p style="font-size:13px; color:#666; margin-bottom:8px;">
+        Drag the pin to the exact office location so candidates can see where this job is based.
+      </p>
+      <div id="job-pin-map" style="height:240px; border-radius:8px; border:1px solid #ccc;"></div>
       <input type="hidden" name="latitude" id="id_job_latitude" value="">
       <input type="hidden" name="longitude" id="id_job_longitude" value="">
+      <p id="job-pin-coordinates" style="font-size:13px; color:#555; margin-top:8px;"></p>
     </div>
 
     <div class="form-row">
@@ -198,24 +201,47 @@
 
   function showPinMap() {
     var cid = citySelect.value;
-    if (!cid || !cityData[cid] || cityData[cid].lat == null || cityData[cid].lng == null) {
+    var lat, lng;
+    var coordsText = document.getElementById('job-pin-coordinates');
+
+    if (cid && cityData[cid] && cityData[cid].lat != null && cityData[cid].lng != null) {
+      lat = cityData[cid].lat;
+      lng = cityData[cid].lng;
+    } else {
       pinSection.style.display = 'none';
+      if (coordsText) coordsText.textContent = '';
       return;
     }
-    var lat = cityData[cid].lat;
-    var lng = cityData[cid].lng;
+
     pinSection.style.display = 'block';
     latInput.value = lat;
     lngInput.value = lng;
+
+    if (coordsText) {
+      coordsText.textContent = 'Current pin: ' + Number(lat).toFixed(6) + ', ' + Number(lng).toFixed(6);
+    }
+
     if (pinMap) { pinMap.remove(); pinMap = null; pinMarker = null; }
+
     pinMap = L.map('job-pin-map').setView([lat, lng], 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(pinMap);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(pinMap);
+
     pinMarker = L.marker([lat, lng], { draggable: true }).addTo(pinMap);
+
     pinMarker.on('dragend', function() {
       var p = pinMarker.getLatLng();
       latInput.value = p.lat.toFixed(6);
       lngInput.value = p.lng.toFixed(6);
+      if (coordsText) {
+        coordsText.textContent = 'Current pin: ' + p.lat.toFixed(6) + ', ' + p.lng.toFixed(6);
+      }
     });
+
+    setTimeout(function() {
+      pinMap.invalidateSize();
+    }, 100);
   }
 
   regionSelect.addEventListener('change', function() {

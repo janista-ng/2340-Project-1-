@@ -36,8 +36,14 @@ class Job(models.Model):
             self.location = ""
         super().save(*args, **kwargs)
 
+    @property
+    def has_coordinates(self):
+        return self.latitude is not None and self.longitude is not None
+
     def __str__(self):
         return self.title
+    
+
     
 class Application(models.Model):
     STATUS_CHOICES = (
@@ -60,3 +66,4 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.applicant.username} applied to {self.job.title}"
+
