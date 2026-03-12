@@ -60,3 +60,85 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.applicant.username} applied to {self.job.title}"
+
+class SavedCandidateSearch(models.Model):
+    recruiter = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="saved_candidate_searches",
+    )
+    job = models.ForeignKey(
+        Job,
+        on_delete=models.CASCADE,
+        related_name="saved_searches",
+    )
+
+    name = models.CharField(max_length=120)
+
+    q = models.CharField(max_length=120, blank=True, default="")
+    skills = models.CharField(max_length=255, blank=True, default="")
+    location = models.CharField(max_length=120, blank=True, default="")
+    city = models.CharField(max_length=120, blank=True, default="")
+    state = models.CharField(max_length=120, blank=True, default="")
+
+    notify_on_new_matches = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} ({self.job.title})"
+
+    def querystring(self):
+        from urllib.parse import urlencode
+
+        params = {}
+        for key in ["q", "skills", "location", "city", "state"]:
+            value = getattr(self, key, "")
+            if value:
+                params[key] = value
+        return urlencode(params)
+
+    def matches_application(self, application):
+        if application.job_id != self.job_id:
+            return False
+
+        applicant = application.applicant
+        profile = getattr(applicant, "profile", None)
+
+        if self.q:
+            q_lower = self.q.lower()
+            haystacks = [
+                applicant.username or "",
+                applicant.first_name or "",
+                applicant.last_name or "",
+                applicant.email or "",
+                getattr(profile, "display_name", "") or "",
+            ]
+            if not any(q_lower in value.lower() for value in haystacks if value):
+                return False
+
+        if self.skills:
+            profile_skills = (getattr(profile, "skills", "") or "").lower()
+            wanted_skills = [s.strip().lower() for s in self.skills.split(",") if s.strip()]
+            for skill in wanted_skills:
+                if skill not in profile_skills:
+                    return False
+
+        if self.location:
+            profile_location = (getattr(profile, "location", "") or "").lower()
+            if self.location.lower() not in profile_location:
+                return False
+
+        if self.city:
+            profile_city = (getattr(profile, "city", "") or "").lower()
+            if self.city.lower() not in profile_city:
+                return False
+
+        if self.state:
+            profile_state = (getattr(profile, "state", "") or "").lower()
+            if self.state.lower() not in profile_state:
+                return False
+
+        return True

@@ -4,7 +4,7 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.contrib import messages
 from django.db.models import Q
 from home.models import Profile
-from .models import Job, Application
+from .models import Job, Application, SavedCandidateSearch
 from .forms import JobForm, ApplicationForm
 
 
@@ -323,6 +323,66 @@ def my_applications(request):
     return render(request, 'jobs/my_applications.html', {'applications': apps})
 
 @login_required
+def save_candidate_search(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+
+    if request.user != job.recruiter:
+        return HttpResponseForbidden("Not allowed.")
+
+    if request.method != "POST":
+        return redirect("jobs:job_applications", pk=job.pk)
+
+    filters = {
+        "q": request.POST.get("q", "").strip(),
+        "skills": request.POST.get("skills", "").strip(),
+        "location": request.POST.get("location", "").strip(),
+        "city": request.POST.get("city", "").strip(),
+        "state": request.POST.get("state", "").strip(),
+    }
+
+    raw_name = request.POST.get("name", "").strip()
+    active_bits = [value for value in filters.values() if value]
+    default_name = "Candidate search"
+    if active_bits:
+        default_name = " / ".join(active_bits[:2])[:120]
+
+    saved_search = SavedCandidateSearch.objects.create(
+        recruiter=request.user,
+        job=job,
+        name=raw_name or default_name,
+        **filters,
+    )
+
+    messages.success(request, f'Saved search "{saved_search.name}".')
+
+    url = f"/jobs/{job.pk}/applications/"
+    qs = saved_search.querystring()
+    if qs:
+        url = f"{url}?{qs}"
+    return redirect(url)
+
+
+@login_required
+def delete_candidate_search(request, pk, search_id):
+    job = get_object_or_404(Job, pk=pk)
+
+    if request.user != job.recruiter:
+        return HttpResponseForbidden("Not allowed.")
+
+    search = get_object_or_404(
+        SavedCandidateSearch,
+        pk=search_id,
+        recruiter=request.user,
+        job=job,
+    )
+
+    if request.method == "POST":
+        search.delete()
+        messages.success(request, "Saved search deleted.")
+
+    return redirect("jobs:job_applications", pk=job.pk)
+
+@login_required
 def job_applications(request, pk):
     job = get_object_or_404(Job, pk=pk)
 
@@ -363,6 +423,11 @@ def job_applications(request, pk):
     if state:
         applications = applications.filter(applicant__profile__state__icontains=state)
 
+    saved_searches = SavedCandidateSearch.objects.filter(
+        recruiter=request.user,
+        job=job,
+    )
+
     return render(request, "jobs/job_applications.html", {
         "job": job,
         "applications": applications,
@@ -371,6 +436,7 @@ def job_applications(request, pk):
         "location": location,
         "city": city,
         "state": state,
+        "saved_searches": saved_searches,
     })
 
 
