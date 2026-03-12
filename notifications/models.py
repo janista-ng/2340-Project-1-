@@ -7,6 +7,7 @@ class Notification(models.Model):
         ("message", "Message"),
         ("recommendation", "Recommendation"),
         ("login", "Login"),
+        ("saved_search", "Saved Search"),
     ]
 
     recipient = models.ForeignKey(

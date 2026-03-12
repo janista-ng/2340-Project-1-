@@ -159,6 +159,54 @@
     color: #555;
     text-align: center;
   }
+
+  .saved-searches, .save-search-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+
+  .saved-search-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .saved-search-pill {
+    border: 1px solid #d7dfeb;
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-width: 220px;
+    background: #f8fbff;
+  }
+
+  .saved-search-pill-title {
+    font-weight: 700;
+    color: #4f7cac;
+    margin-bottom: 6px;
+  }
+
+  .saved-search-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .secondary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #4f7cac;
+    background: #fff;
+    color: #4f7cac;
+    font-weight: 700;
+    text-decoration: none;
+  }
 </style>
 
 <div class="content-wrapper">
@@ -211,6 +259,53 @@
 
   </form>
 
+  <div class="save-search-card">
+    <form method="post" action="{% url 'jobs:save_candidate_search' job.pk %}">
+      {% csrf_token %}
+      <div class="filter-bar" style="margin-bottom:0; box-shadow:none; padding:0;">
+        <div class="filter-field">
+          <label>Save current filters as</label>
+          <input type="text" name="name" placeholder="e.g. Atlanta Python candidates">
+        </div>
+
+        <input type="hidden" name="q" value="{{ q }}">
+        <input type="hidden" name="skills" value="{{ skills }}">
+        <input type="hidden" name="location" value="{{ location }}">
+        <input type="hidden" name="city" value="{{ city }}">
+        <input type="hidden" name="state" value="{{ state }}">
+
+        <div class="filter-actions">
+          <button type="submit">Save Search</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="saved-searches">
+    <strong>Saved searches</strong>
+    <div class="saved-search-list">
+      {% for search in saved_searches %}
+        <div class="saved-search-pill">
+          <div class="saved-search-pill-title">{{ search.name }}</div>
+          <div style="font-size:13px; color:#555;">
+            {% if search.querystring %}{{ search.querystring }}{% else %}No filters saved{% endif %}
+          </div>
+
+          <div class="saved-search-actions">
+            <a class="secondary-btn" href="{% url 'jobs:job_applications' job.pk %}?{{ search.querystring }}">Run</a>
+
+            <form method="post" action="{% url 'jobs:delete_candidate_search' job.pk search.id %}">
+              {% csrf_token %}
+              <button type="submit">Delete</button>
+            </form>
+          </div>
+        </div>
+      {% empty %}
+        <div style="font-size:13px; color:#666;">No saved searches yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+
 
   <p class="results-count">
   Showing <b>{{ applications|length }}</b> applicant{{ applications|length|pluralize }}.
@@ -251,31 +346,60 @@
       <h2>Under Review</h2>
       {% for app in applications %}
         {% if app.status == "review" %}
-          <div class="applicant-card">
-            <a href="{% url 'public_profile' app.applicant.id %}"
-              style="text-decoration:none; color:inherit;">
+         <div class="applicant-card">
+  
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
+    
+            <a href="{% url 'public_profile' app.applicant.id %}" style="text-decoration:none; color:inherit;">
+      
               <b>{{ app.applicant.username }}</b>
-              <a class="msg-btn" href="{% url 'messaging:start_thread' app.applicant.id %}">
-                Message
-              </a>
+    
             </a>
-            {% if app.cover_note %}
-              <p><i>{{ app.cover_note }}</i></p>
-            {% endif %}
-            <form method="post" action="{% url 'jobs:update_application_status' app.id %}">
-              {% csrf_token %}
-              <select name="status">
-                {% for value,label in app.STATUS_CHOICES %}
-                  <option value="{{ value }}" {% if app.status == value %}selected{% endif %}>
-                    {{ label }}
-                  </option>
-                {% endfor %}
-              </select>
-              <button type="submit">Update</button>
-            </form>
+
+    
+            <a class="msg-btn" href="{% url 'messaging:start_thread' app.applicant.id %}">
+      
+              Message
+    
+            </a>
+  
           </div>
+
+  
+          {% if app.cover_note %}
+    
+          <p><i>{{ app.cover_note }}</i></p>
+  
+          {% endif %}
+
+  
+          <form method="post" action="{% url 'jobs:update_application_status' app.id %}">
+    
+            {% csrf_token %}
+    
+            <select name="status">
+      
+              {% for value, label in app.STATUS_CHOICES %}
+        
+              <option value="{{ value }}" {% if app.status == value %}selected{% endif %}>
+          
+                {{ label }}
+        
+              </option>
+      
+              {% endfor %}
+    
+            </select>
+    
+            <button type="submit">Update</button>
+  
+          </form>
+
+        </div>
+        
         {% endif %}
-      {% endfor %}
+      
+        {% endfor %}
     </div>
 
     <div class="kanban-column">

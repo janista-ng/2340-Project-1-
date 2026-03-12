@@ -8,6 +8,18 @@
     margin: 18px auto 0 auto;
     padding: 0 18px 24px 18px;
   }
+  .dm-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 16px;
+    color: #fff;
+  }
 
   .dm-card {
     background: #fff;
@@ -137,28 +149,40 @@
   <div class="dm-card">
     <div class="dm-topbar">
       <a class="dm-back" href="{% url 'messaging:inbox' %}">←</a>
-
+      <div class="dm-avatar">{{ thread_title|slice:":1"|upper }}</div>
       <div class="dm-headtext">
         <p class="dm-title">{{ thread_title|default:"Conversation" }}</p>
         <p class="dm-sub">Thread #{{ thread_id }}</p>
       </div>
     </div>
 
+    
     <div class="dm-body" id="dmBody">
-      {% for m in messages %}
-        <div class="bubble-row">
-          <div class="bubble {{ m.side }}">
-            {{ m.text }}
-            {% if m.time %}
-              <div class="bubble-time">{{ m.time }}</div>
-            {% endif %}
-          </div>
+  
+      {% for m in chat_messages %}
+    
+      <div class="bubble-row">
+      
+        <div class="bubble {% if m.sender_id == current_user_id %}me{% else %}them{% endif %}">
+        
+          {{ m.body }}
+        
+          <div class="bubble-time">{{ m.created_at|date:"M d, g:i A" }}</div>
+      
         </div>
+    
+      </div>
+  
       {% empty %}
-        <div style="text-align:center; color:#666; font-weight:800; padding:16px;">
-          No messages yet.
-        </div>
+    
+      <div style="text-align:center; color:#666; font-weight:800; padding:16px;">
+      
+        No messages yet.
+    
+      </div>
+  
       {% endfor %}
+
     </div>
 
     <form class="dm-inputbar" method="post">

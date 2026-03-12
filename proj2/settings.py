@@ -37,12 +37,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cities_light',
     'home',
     'recommendations',
     'jobs',
     'messaging',
     "notifications",
 ]
+
+# django-cities-light: US only, cities with population > 15000 (default)
+# https://django-cities-light.readthedocs.io/en/stable-3.x.x/full.html
+CITIES_LIGHT_INCLUDE_COUNTRIES = ['US']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -125,6 +130,9 @@ STATIC_URL = 'static/'
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/login/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

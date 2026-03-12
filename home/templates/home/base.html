@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>{% block title %}TEMP{% endblock %}</title>
+  <title>{% block title %}Nexora{% endblock %}</title>
   <style>
     body {
       margin: 0;
@@ -25,6 +25,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      height: 54px;
+      overflow: hidden;
+
     }
 
     .nav-left,
@@ -36,19 +39,25 @@
       flex-shrink: 1;
       min-width: 0;
     }
-
-    .title {
+    brand {
       position: absolute;
       left: 50%;
-      transform: translateX(-50%);
+      top: 70%;
+      transform: translate(-50%, -50%);
       margin: 0;
-      font-size: clamp(18px, 2.5vw, 28px);
-      color: #fff;
-      font-weight: 700;
-      letter-spacing: 1px;
-      white-space: nowrap;
       z-index: 1;
-      pointer-events: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      height: 60px;
+    }
+    .brand img {
+      height: 200px;
+      width: auto;
+      max-width: 420px;
+      display: block;
+      object-fit: contain;
     }
 
     .nav-btn {
@@ -184,7 +193,10 @@
         </a>
       </div>
 
-      <h1 class="title">TEMP</h1>
+
+      <a class="brand" href="{% url 'home.index' %}">
+        <img src="{% static 'home/images/nexora-logo.png' %}" alt="Nexora">
+      </a>
 
       <div class="nav-right">
 
@@ -194,13 +206,6 @@
         <a class="nav-btn" href="{% url 'jobs:my_applications' %}">
       
           <span>My Applications</span>
-    
-        </a>
-
-    
-        <a class="nav-btn" href="{% url 'privacy' %}">
-      
-          <span>Privacy</span>
     
         </a>
   

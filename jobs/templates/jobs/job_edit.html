@@ -19,14 +19,17 @@
     color: #4f7cac;
   }
 
-  input, textarea {
+  input, textarea, select {
     width: 100%;
     padding: 10px;
     border-radius: 8px;
     margin-bottom: 12px;
     border: 1px solid #ccc;
-    font-size: 16px;
+    outline: none;
     box-sizing: border-box;
+    font-size: 16px;
+    background: #fff;
+    color: #222;
   }
 
   button {
@@ -39,21 +42,190 @@
     border: none;
   }
 
-  button:hover { opacity: 0.85; }
+  button:hover {
+    opacity: 0.85;
+  }
 
-  form { max-width: 600px; }
-  a { color: #4f7cac; text-decoration: underline; }
+  a {
+    color: #4f7cac;
+    text-decoration: underline;
+  }
+
+  form {
+    max-width: 600px;
+  }
+
+  .form-row {
+    margin-bottom: 12px;
+  }
+
+  .form-row label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #333;
+  }
+
+  .form-row .errorlist {
+    color: #c00;
+    font-size: 13px;
+    margin-top: 2px;
+  }
 </style>
 
 <div class="content-wrapper">
   <h1>Edit Job</h1>
 
-  <form method="POST">
+  <form method="POST" id="jobForm">
     {% csrf_token %}
-    {{ form.as_p }}
+
+    <div class="form-row">
+      <label for="id_title">Title:</label>
+      {{ form.title }}
+      {{ form.title.errors }}
+    </div>
+
+    <div class="form-row">
+      <label for="id_company">Company:</label>
+      {{ form.company }}
+      {{ form.company.errors }}
+    </div>
+
+    <div class="form-row">
+      <label for="id_description">Description:</label>
+      {{ form.description }}
+      {{ form.description.errors }}
+    </div>
+
+    <div class="form-row">
+      <label for="id_skills">Skills:</label>
+      {{ form.skills }}
+      {{ form.skills.errors }}
+    </div>
+
+    <div class="form-row">
+      <label for="id_salary">Salary:</label>
+      {{ form.salary }}
+      {{ form.salary.errors }}
+    </div>
+
+    <div class="form-row">
+      <label for="id_region">State:</label>
+      {{ form.region }}
+      {{ form.region.errors }}
+    </div>
+
+    <div class="form-row">
+      <label for="id_city">City:</label>
+      <select name="city" id="id_city">
+        <option value="">-- Select state first --</option>
+      </select>
+      {{ form.city.errors }}
+    </div>
+
+    <div class="form-row" id="job-pin-drop-section" style="display:none;">
+      <label>Adjust location (optional)</label>
+      <p style="font-size:13px; color:#666; margin-bottom:8px;">Drag the pin to fine-tune the office location. Helps with maps and commute radius.</p>
+      <div id="job-pin-map" style="height:200px; border-radius:8px; border:1px solid #ccc;"></div>
+      <input type="hidden" name="latitude" id="id_job_latitude" value="{{ job.latitude|default:'' }}">
+      <input type="hidden" name="longitude" id="id_job_longitude" value="{{ job.longitude|default:'' }}">
+    </div>
+
+    <div class="form-row">
+      <label for="id_remote">Work Type:</label>
+      {{ form.remote }}
+      {{ form.remote.errors }}
+    </div>
+
+    <div class="form-row">
+      <label for="id_visa_sponsorship">Visa Sponsorship:</label>
+      {{ form.visa_sponsorship }}
+      {{ form.visa_sponsorship.errors }}
+    </div>
+
     <button type="submit">Save Changes</button>
   </form>
 
   <p><a href="{% url 'jobs:job_detail' job.id %}">← Back to Job</a></p>
 </div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function() {
+  var regionSelect = document.getElementById('id_region');
+  var citySelect = document.getElementById('id_city');
+  var pinSection = document.getElementById('job-pin-drop-section');
+  var latInput = document.getElementById('id_job_latitude');
+  var lngInput = document.getElementById('id_job_longitude');
+  var citiesUrl = "{% url 'jobs:cities_by_region' %}";
+  var initialCityId = "{{ form.initial.city|default:'' }}";
+  var initialLat = "{{ job.latitude|default:'' }}";
+  var initialLng = "{{ job.longitude|default:'' }}";
+  var cityData = {};
+  var pinMap = null;
+  var pinMarker = null;
+
+  function loadCities(regionId) {
+    citySelect.innerHTML = '<option value="">-- Select state first --</option>';
+    pinSection.style.display = 'none';
+    if (pinMap) { pinMap.remove(); pinMap = null; pinMarker = null; }
+    if (!regionId) return;
+    citySelect.innerHTML = '<option value="">Loading...</option>';
+    fetch(citiesUrl + '?region_id=' + encodeURIComponent(regionId))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        citySelect.innerHTML = '<option value="">-- Select city --</option>';
+        cityData = {};
+        data.cities.forEach(function(c) {
+          var opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.name;
+          if (initialCityId && String(c.id) === String(initialCityId)) opt.selected = true;
+          citySelect.appendChild(opt);
+          cityData[c.id] = { lat: c.lat, lng: c.lng };
+        });
+        if (initialCityId) showPinMap();
+      })
+      .catch(function() {
+        citySelect.innerHTML = '<option value="">-- Error loading cities --</option>';
+      });
+  }
+
+  function showPinMap() {
+    var cid = citySelect.value;
+    var lat, lng;
+    if (initialLat && initialLng && parseFloat(initialLat) && parseFloat(initialLng)) {
+      lat = parseFloat(initialLat);
+      lng = parseFloat(initialLng);
+      initialLat = initialLng = '';
+    } else if (cid && cityData[cid] && cityData[cid].lat != null && cityData[cid].lng != null) {
+      lat = cityData[cid].lat;
+      lng = cityData[cid].lng;
+    } else {
+      pinSection.style.display = 'none';
+      return;
+    }
+    pinSection.style.display = 'block';
+    latInput.value = lat;
+    lngInput.value = lng;
+    if (pinMap) { pinMap.remove(); pinMap = null; pinMarker = null; }
+    pinMap = L.map('job-pin-map').setView([lat, lng], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(pinMap);
+    pinMarker = L.marker([lat, lng], { draggable: true }).addTo(pinMap);
+    pinMarker.on('dragend', function() {
+      var p = pinMarker.getLatLng();
+      latInput.value = p.lat.toFixed(6);
+      lngInput.value = p.lng.toFixed(6);
+    });
+  }
+
+  regionSelect.addEventListener('change', function() {
+    initialCityId = '';
+    loadCities(regionSelect.value);
+  });
+  citySelect.addEventListener('change', showPinMap);
+  if (regionSelect.value) loadCities(regionSelect.value);
+})();
+</script>
 {% endblock %}

@@ -1,0 +1,26 @@
+{% for job, score in job_results %}
+
+<div class="job-card">
+
+  <h3>{{ job.title }}</h3>
+
+  <p>
+    <strong>{{ job.company }}</strong><br>
+    {{ job.location }}
+  </p>
+
+  <p>
+    <strong>Skills:</strong> {{ job.skills }}
+  </p>
+
+  <p>
+    Match Score: <strong>{{ score }}</strong>
+  </p>
+
+  <a href="{% url 'jobs:job_detail' pk=job.id %}" class="btn">
+    View Job
+  </a>
+
+</div>
+
+{% endfor %}

@@ -138,12 +138,6 @@
     color: white;
   }
 
-  .toggle-group button.apply-filters {
-    margin-left: auto;
-    background: #4f7cac;
-    color: white;
-  }
-
   .toggle-group button.clear-filters {
     background: #ccc;
     color: #222;
@@ -151,6 +145,121 @@
     border: none;
     border-radius: 8px;
     cursor: pointer;
+  }
+
+  .commute-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .commute-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+  }
+  .commute-modal-content {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    max-width: 560px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .commute-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #eee;
+  }
+  .commute-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #4f7cac;
+  }
+  .commute-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    line-height: 1;
+  }
+  .commute-modal-close:hover { color: #333; }
+  .commute-modal-body {
+    padding: 0 20px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .commute-note {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin: 0 0 16px 0;
+  }
+  .commute-note a {
+    color: #4f7cac;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .commute-note a:hover { text-decoration: underline; }
+  .commute-slider {
+    margin-bottom: 16px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .commute-map {
+    height: 320px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    flex-shrink: 0;
+  }
+  .commute-modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    flex-shrink: 0;
+  }
+  .commute-modal-actions .btn {
+    margin-top: 0;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: #666;
+    border: 1px solid #ccc;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .btn-ghost:hover {
+    background: #f5f5f5;
+    color: #333;
+  }
+  .commute-job-count {
+    font-size: 14px;
+    color: #666;
+    align-self: center;
+    margin-left: 8px;
+  }
+
+  .jobs-match-count {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 16px;
   }
 
   .job-list {
@@ -210,11 +319,13 @@
   {% endif %}
 
   <form method="GET" class="search-bar" id="filterForm">
+    <input type="hidden" name="filter_lat" id="filterLat" value="{{ user_lat|default:'' }}">
+    <input type="hidden" name="filter_lng" id="filterLng" value="{{ user_lng|default:'' }}">
+    <input type="hidden" name="radius_miles" id="radiusMiles" value="{{ radius_miles|default:'0' }}">
+    <input type="hidden" name="focus" id="focusField" value="{{ focus_field|default:'' }}">
     <div class="search-row">
-      <input type="text" name="q" placeholder="Search jobs..." value="{{ query }}">
-      <input type="text" name="skills" placeholder="Skills..." value="{{ skills_query }}">
-      <input type="text" name="city" placeholder="City..." value="{{ city_query }}">
-      <input type="text" name="state" placeholder="State..." value="{{ state_query }}">
+      <input type="text" name="q" placeholder="Job title..." value="{{ query }}">
+      <input type="text" name="other" placeholder="Description, skills, company, location..." value="{{ other_query }}">
     </div>
 
     <div class="salary-slider">
@@ -239,12 +350,19 @@
       <button type="button" data-value="onsite" class="toggle-btn {% if onsite %}active{% endif %}">On-site</button>
       <button type="button" data-value="hybrid" class="toggle-btn {% if hybrid %}active{% endif %}">Hybrid</button>
       <button type="button" data-value="visa" class="toggle-btn {% if visa %}active{% endif %}">Visa Sponsorship</button>
-      <button type="submit" class="apply-filters">Apply Filters</button>
+      {% if user.is_authenticated and user_profile and user_profile.role == "job_seeker" %}
+        {% if user_lat and user_lng %}
+        <button type="button" id="commuteRadiusBtn" class="toggle-btn {% if radius_miles %}active{% endif %}">Commute radius ({% if radius_miles == 1 %}1 mi{% elif radius_miles %}{{ radius_miles }} mi{% else %}any{% endif %})</button>
+        {% else %}
+        <a href="{% url 'profile' %}" class="commute-setup-link" title="Set your home location to filter jobs by commute distance">Set home location →</a>
+        {% endif %}
+      {% endif %}
       <button type="button" class="clear-filters">Clear Filters</button>
     </div>
   </form>
 
   {% if jobs %}
+    <p class="jobs-match-count">{% if jobs_count == 1 %}1 job matches{% else %}{{ jobs_count }} jobs match{% endif %} (of {{ total_jobs }} total)</p>
     <div class="job-list">
       {% for job in jobs %}
         <div class="job-card">
@@ -259,11 +377,58 @@
       {% endfor %}
     </div>
   {% else %}
+    {% if total_jobs > 0 %}<p class="jobs-match-count">0 jobs match (of {{ total_jobs }} total)</p>{% endif %}
     <p style="text-align:center;">No jobs posted yet.</p>
+  {% endif %}
+
+  {% if user_lat and user_lng %}
+  <div id="commuteModal" class="commute-modal" style="display:none;">
+    <div class="commute-modal-backdrop"></div>
+    <div class="commute-modal-content">
+      <div class="commute-modal-header">
+        <h3>Commute radius</h3>
+        <button type="button" class="commute-modal-close">&times;</button>
+      </div>
+      <div class="commute-modal-body">
+        <p class="commute-note">Show jobs within <strong id="radiusDisplay">{% if radius_miles == 1 %}1 mile{% elif radius_miles %}{{ radius_miles }} miles{% else %}any distance{% endif %}</strong> of your home (★). <a href="{% url 'profile' %}?edit=1">Edit Profile</a> to change your home.</p>
+        <div class="commute-slider">
+          <div class="slider-container">
+            <div class="slider-track"></div>
+            <div class="slider-range" id="radiusSliderRange"></div>
+            <input type="range" id="radiusSlider" min="0" max="50" value="{{ radius_miles|default:'0' }}" step="1">
+          </div>
+        </div>
+        <div id="jobs-map" class="commute-map"></div>
+        <div class="commute-modal-actions">
+          <button type="button" id="commuteApply" class="btn">Apply changes</button>
+          <button type="button" id="commuteRemove" class="btn-ghost">Remove filter</button>
+          <span id="commuteJobCount" class="commute-job-count"></span>
+        </div>
+      </div>
+    </div>
+  </div>
   {% endif %}
 </div>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js" crossorigin=""></script>
+
 <script>
+  (function() {
+    var focusField = "{{ focus_field|default:'' }}";
+    if (focusField) {
+      var el = document.querySelector('input[name="' + focusField + '"]');
+      if (el) {
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+        el.scrollIntoView({ block: "center" });
+      }
+    }
+  })();
+
   const minSlider = document.getElementById("minSalary");
   const maxSlider = document.getElementById("maxSalary");
   const minDisplay = document.getElementById("minDisplay");
@@ -294,17 +459,200 @@
   maxSlider.addEventListener("input", updateSlider);
   updateSlider();
 
-  const toggleBtns = document.querySelectorAll(".toggle-btn");
+  const form = document.getElementById("filterForm");
+  const focusFieldEl = document.getElementById("focusField");
+
+  function submitForm(clearFocus) {
+    if (focusFieldEl) focusFieldEl.value = clearFocus ? "" : focusFieldEl.value;
+    form.submit();
+  }
+
+  const debounceMs = 400;
+  let debounceTimer;
+  let lastInputName = "";
+  function debouncedSubmit(inputName) {
+    lastInputName = inputName;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function() {
+      if (focusFieldEl) focusFieldEl.value = lastInputName;
+      form.submit();
+    }, debounceMs);
+  }
+
+  document.querySelector('input[name="q"]').addEventListener("input", function() { debouncedSubmit("q"); });
+  document.querySelector('input[name="other"]').addEventListener("input", function() { debouncedSubmit("other"); });
+
+  minSlider.addEventListener("change", function() { submitForm(true); });
+  maxSlider.addEventListener("change", function() { submitForm(true); });
+
+  const toggleBtns = document.querySelectorAll(".toggle-btn[data-value]");
   toggleBtns.forEach(btn => {
     const hiddenInput = document.getElementById(btn.dataset.value + "Input");
-    btn.addEventListener("click", () => {
+    if (hiddenInput) btn.addEventListener("click", () => {
       btn.classList.toggle("active");
       hiddenInput.value = btn.classList.contains("active") ? "on" : "";
+      submitForm(true);
     });
   });
 
   document.querySelector(".clear-filters").addEventListener("click", () => {
-  window.location.href = "{% url 'jobs:job_list' %}";
-});
+    window.location.href = "{% url 'jobs:job_list' %}";
+  });
+
+  var commuteBtn = document.getElementById("commuteRadiusBtn");
+  var commuteModal = document.getElementById("commuteModal");
+  var radiusSlider = document.getElementById("radiusSlider");
+  var radiusDisplay = document.getElementById("radiusDisplay");
+  var radiusMilesInput = document.getElementById("radiusMiles");
+  var radiusSliderRange = document.getElementById("radiusSliderRange");
+
+  if (commuteModal && commuteBtn) {
+    commuteBtn.addEventListener("click", function() {
+      commuteModal.style.display = "flex";
+      if (window.jobsMapInvalidate) window.jobsMapInvalidate();
+    });
+    commuteModal.querySelector(".commute-modal-backdrop").addEventListener("click", function() {
+      commuteModal.style.display = "none";
+    });
+    commuteModal.querySelector(".commute-modal-close").addEventListener("click", function() {
+      commuteModal.style.display = "none";
+    });
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape" && commuteModal.style.display === "flex") commuteModal.style.display = "none";
+    });
+  }
+
+  function radiusLabel(v) {
+    if (v === 0) return "any";
+    if (v === 1) return "1 mi";
+    return v + " mi";
+  }
+
+  function radiusDescription(v) {
+    if (v === 0) return "any distance";
+    if (v === 1) return "1 mile";
+    return v + " miles";
+  }
+
+  if (radiusSlider) {
+    var radiusDisplay = document.getElementById("radiusDisplay");
+    function updateRadiusSlider() {
+      var v = parseInt(radiusSlider.value);
+      if (radiusDisplay) radiusDisplay.textContent = radiusDescription(v);
+      if (radiusMilesInput) radiusMilesInput.value = v;
+      if (radiusSliderRange) {
+        radiusSliderRange.style.left = "0%";
+        radiusSliderRange.style.width = (v / 50 * 100) + "%";
+      }
+      var cb = document.getElementById("commuteRadiusBtn");
+      if (cb) {
+        cb.textContent = "Commute radius (" + radiusLabel(v) + ")";
+        cb.classList.toggle("active", v > 0);
+      }
+      if (window.jobsMapUpdate) window.jobsMapUpdate(v);
+    }
+    radiusSlider.addEventListener("input", updateRadiusSlider);
+    if (radiusSliderRange) {
+      var v = parseInt(radiusSlider.value);
+      radiusSliderRange.style.left = "0%";
+      radiusSliderRange.style.width = (v / 50 * 100) + "%";
+    }
+  }
+
+  var commuteApply = document.getElementById("commuteApply");
+  var commuteRemove = document.getElementById("commuteRemove");
+  if (commuteApply && form) {
+    commuteApply.addEventListener("click", function() {
+      if (radiusMilesInput && radiusSlider) radiusMilesInput.value = radiusSlider.value;
+      if (commuteModal) commuteModal.style.display = "none";
+      submitForm(true);
+    });
+  }
+  if (commuteRemove && form) {
+    commuteRemove.addEventListener("click", function() {
+      if (radiusMilesInput) radiusMilesInput.value = "0";
+      if (radiusSlider) {
+        radiusSlider.value = 0;
+        if (window.jobsMapUpdate) window.jobsMapUpdate(0);
+      }
+      if (commuteModal) commuteModal.style.display = "none";
+      submitForm(true);
+    });
+  }
 </script>
+
+{% if user_lat and user_lng %}
+<script>
+(function() {
+  var mapEl = document.getElementById("jobs-map");
+  if (!mapEl) return;
+  var userLat = {{ user_lat }};
+  var userLng = {{ user_lng }};
+  var radiusMiles = {{ radius_miles|default:0 }};
+  var mapMarkersUrl = "{% url 'jobs:map_markers' %}";
+
+  var map = null;
+  var radiusCircle = null;
+  var userPin = null;
+  var clusters = L.markerClusterGroup();
+
+  function initMap() {
+    if (map) return;
+    map = L.map("jobs-map").setView([userLat, userLng], 10);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "&copy; OpenStreetMap" }).addTo(map);
+    userPin = L.marker([userLat, userLng], { icon: L.divIcon({ className: "user-location-pin", html: "&#9733;", iconSize: [24, 24] }) }).addTo(map);
+  }
+
+  function updateRadiusCircle(miles) {
+    if (!map) return;
+    if (radiusCircle) map.removeLayer(radiusCircle);
+    radiusCircle = null;
+    if (miles > 0) {
+      radiusCircle = L.circle([userLat, userLng], { radius: miles * 1609.34, color: "#4f7cac", fillColor: "#4f7cac", fillOpacity: 0.1 });
+      radiusCircle.addTo(map);
+    }
+  }
+
+  function loadMarkers(miles) {
+    if (!map) return;
+    clusters.clearLayers();
+    var url = mapMarkersUrl;
+    if (miles > 0) url += "?lat=" + userLat + "&lng=" + userLng + "&radius_miles=" + miles;
+    fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+      var markers = (data.markers || []).filter(function(m) { return m.type === "job"; });
+      var countEl = document.getElementById("commuteJobCount");
+      if (countEl) {
+        countEl.textContent = markers.length === 0 ? "0 jobs match" : markers.length === 1 ? "1 job matches" : markers.length + " jobs match";
+      }
+      var esc = function(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
+      markers.forEach(function(m) {
+        var marker = L.marker([m.lat, m.lng]);
+        marker.bindPopup("<strong>" + esc(m.title || "Job") + "</strong><br>" + (m.company ? esc(m.company) + "<br>" : "") + (m.location ? esc(m.location) + "<br>" : "") + (m.url ? '<a href="' + esc(m.url) + '">View Job</a>' : ""));
+        clusters.addLayer(marker);
+      });
+      map.addLayer(clusters);
+      var b = clusters.getBounds();
+      if (b.isValid()) map.fitBounds(b, { padding: [30, 30] });
+    });
+  }
+
+  window.jobsMapUpdate = function(miles) {
+    updateRadiusCircle(miles);
+    loadMarkers(miles);
+  };
+
+  window.jobsMapInvalidate = function() {
+    if (!map) initMap();
+    setTimeout(function() {
+      if (map) map.invalidateSize();
+      var s = document.getElementById("radiusSlider");
+      var v = s ? parseInt(s.value) : radiusMiles;
+      updateRadiusCircle(v);
+      loadMarkers(v);
+    }, 100);
+  };
+
+})();
+</script>
+{% endif %}
 {% endblock %}
