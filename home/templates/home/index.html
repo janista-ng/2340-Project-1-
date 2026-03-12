@@ -138,8 +138,12 @@
   {% endif %}
   </div> 
   
-  <div class="map-panel" data-map-markers-url="{% url 'jobs:map_markers' %}">
-    <h2>Map Search</h2>
+  <div class="map-panel" data-map-markers-url="{% url 'jobs:map_markers' %}"
+       data-user-lat="{% if user_profile %}{{ user_profile.latitude|default:'' }}{% endif %}"
+       data-user-lng="{% if user_profile %}{{ user_profile.longitude|default:'' }}{% endif %}"
+       data-is-seeker="{% if user_profile.role == 'job_seeker' %}1{% else %}0{% endif %}"
+       data-is-recruiter="{% if user_profile.role == 'recruiter' %}1{% else %}0{% endif %}">
+    <h2>{% if user_profile and user_profile.role == 'recruiter' %}Applicant Map{% else %}Map Search{% endif %}</h2>
     <div id="job-map"></div>
     <p id="map-empty-msg" style="display:none; padding:20px; color:#666;">No job locations to display. Jobs with a selected city will appear here.</p>
   </div>
@@ -155,43 +159,67 @@
 <script>
 (function() {
   var mapEl = document.getElementById("job-map");
-  var url = document.querySelector(".map-panel").getAttribute("data-map-markers-url");
-  if (!mapEl || !url) return;
+  var panel = document.querySelector(".map-panel");
+  if (!mapEl || !panel) return;
+  var baseUrl = panel.getAttribute("data-map-markers-url");
+  var userLat = parseFloat(panel.getAttribute("data-user-lat"));
+  var userLng = parseFloat(panel.getAttribute("data-user-lng"));
+  var isSeeker = panel.getAttribute("data-is-seeker") === "1";
+  var isRecruiter = panel.getAttribute("data-is-recruiter") === "1";
 
   var map = L.map("job-map").setView([39.8283, -98.5795], 4);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors"
   }).addTo(map);
 
+  var userPin = null;
   var clusters = L.markerClusterGroup();
-  fetch(url)
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var jobMarkers = (data.markers || []).filter(function(m) { return m.type === "job"; });
-      if (jobMarkers.length === 0) {
+
+  function buildUrl() {
+    var params = [];
+    if (isRecruiter) params.push("recruiter_applicants=1");
+    if (params.length) return baseUrl + (baseUrl.indexOf("?") >= 0 ? "&" : "?") + params.join("&");
+    return baseUrl;
+  }
+
+  function loadMarkers() {
+    clusters.clearLayers();
+    var markerType = isRecruiter ? "applicant" : "job";
+    fetch(buildUrl())
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var markers = (data.markers || []).filter(function(m) { return m.type === markerType; });
+        if (markers.length === 0) {
+          document.getElementById("map-empty-msg").style.display = "block";
+          document.getElementById("map-empty-msg").textContent = isRecruiter ? "No applicants with locations." : "No job locations to display.";
+          return;
+        }
+        document.getElementById("map-empty-msg").style.display = "none";
+        var esc = function(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
+        markers.forEach(function(m) {
+          var marker = L.marker([m.lat, m.lng]);
+          var popup = "<strong>" + esc(m.title || (markerType === "job" ? "Job" : "Applicant")) + "</strong><br>" +
+            (m.company ? esc(m.company) + "<br>" : "") +
+            (m.location ? esc(m.location) + "<br>" : "") +
+            (m.url ? '<a href="' + esc(m.url) + '">View</a>' : "");
+          marker.bindPopup(popup);
+          clusters.addLayer(marker);
+        });
+        map.addLayer(clusters);
+        var b = clusters.getBounds();
+        if (b.isValid()) map.fitBounds(b, { padding: [20, 20] });
+        if (isSeeker && !isNaN(userLat) && !isNaN(userLng)) {
+          if (userPin) map.removeLayer(userPin);
+          userPin = L.marker([userLat, userLng], { icon: L.divIcon({ className: "user-location-pin", html: "&#9733;", iconSize: [24, 24] }) }).addTo(map);
+        }
+      })
+      .catch(function() {
         document.getElementById("map-empty-msg").style.display = "block";
-        return;
-      }
-      var esc = function(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
-      jobMarkers.forEach(function(m) {
-        var marker = L.marker([m.lat, m.lng]);
-        var popup = "<strong>" + esc(m.title || "Job") + "</strong><br>" +
-          (m.company ? esc(m.company) + "<br>" : "") +
-          (m.location ? esc(m.location) + "<br>" : "") +
-          (m.url ? '<a href="' + esc(m.url) + '">View Job</a>' : "");
-        marker.bindPopup(popup);
-        clusters.addLayer(marker);
+        document.getElementById("map-empty-msg").textContent = "Could not load locations.";
       });
-      map.addLayer(clusters);
-      var b = clusters.getBounds();
-      if (b.isValid()) {
-        map.fitBounds(b, { padding: [20, 20] });
-      }
-    })
-    .catch(function() {
-      document.getElementById("map-empty-msg").style.display = "block";
-      document.getElementById("map-empty-msg").textContent = "Could not load job locations.";
-    });
+  }
+
+  loadMarkers();
 })();
 </script>
 

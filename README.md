@@ -19,7 +19,7 @@ Open http://127.0.0.1:8000/
 
 ## User Stories
 
-**15 of 21 completed**
+**17 of 21 completed**
 
 ### Job Seeker
 - [x] Create profile (headline, skills, education, work experience, links)
@@ -29,8 +29,8 @@ Open http://127.0.0.1:8000/
 - [x] Set profile privacy options
 - [x] Receive job recommendations based on skills
 - [x] View jobs on interactive map with clustering
-- [ ] Filter map by distance from my location
-- [ ] Set commute radius on map
+- [x] Filter map by distance from my location
+- [x] Set commute radius on map
 
 ### Recruiter
 - [x] Post and edit job roles
@@ -39,7 +39,7 @@ Open http://127.0.0.1:8000/
 - [x] Message candidates in-app
 - [x] Receive candidate recommendations for jobs
 - [x] Pin job location on map (State/City + optional pin-drop)
-- [ ] See clusters of applicants by location on map
+- [x] See clusters of applicants by location on map
 - [ ] Email candidates through platform
 - [ ] Save searches and get notified about new matches
 
@@ -53,7 +53,9 @@ Open http://127.0.0.1:8000/
 - **Location**: State/City dropdowns (django-cities-light), lat/lng stored for maps
 - **Pin-drop**: Fine-tune location on map when creating/editing jobs or profiles (seed mimics this with random offsets)
 - **Map**: Job seeker home page shows jobs on Leaflet map with marker clustering
-- **Map API**: `GET /jobs/map-markers/` — jobs + applicants (when `?job_id=X`)
+- **Commute radius**: On Jobs page — seekers with profile location get a slider (0–50 mi) to filter by distance; radius circle shown on map
+- **Applicant map**: Recruiters see applicant clusters by location on home page
+- **Map API**: `GET /jobs/map-markers/` — jobs (optional lat/lng/radius_miles), applicants (job_id or recruiter_applicants=1)
 
 ## Development
 
@@ -61,10 +63,4 @@ Open http://127.0.0.1:8000/
 git pull origin main
 python manage.py migrate
 python manage.py runserver
-```
-
-
-TODO: As seeker: filter map by distance from location: commute distance (pin to pin as the crow flies)
-TODO: use map and bubble to set this commute distance filter
-
-TODO from the recruiter page, see similar map of seekers
+``` 
