@@ -8,8 +8,8 @@ from .models import Job, Application
 from .forms import JobForm, ApplicationForm
 
 
-def _save_city_state_from_form(job, form):
-    """Extract city/state from django-cities-light City selection and save to job."""
+def _save_city_state_from_form(job, form, request=None):
+    """Extract city/state from django-cities-light City selection and optional pin-drop. Save to job."""
     from cities_light.models import City
     city_id = form.cleaned_data.get('city')
     if not city_id:
@@ -22,7 +22,17 @@ def _save_city_state_from_form(job, form):
         city = City.objects.get(pk=city_id)
         job.city = city.name
         job.state = city.region.geoname_code or city.region.name if city.region else ''
-        if city.latitude and city.longitude:
+        lat = request.POST.get('latitude') if request else None
+        lng = request.POST.get('longitude') if request else None
+        if lat and lng:
+            try:
+                job.latitude = float(lat)
+                job.longitude = float(lng)
+            except (TypeError, ValueError):
+                if city.latitude and city.longitude:
+                    job.latitude = city.latitude
+                    job.longitude = city.longitude
+        elif city.latitude and city.longitude:
             job.latitude = city.latitude
             job.longitude = city.longitude
     except City.DoesNotExist:
@@ -101,16 +111,69 @@ def job_detail(request, pk):
 
 
 def cities_by_region(request):
-    """AJAX endpoint: return cities for a given region (state)."""
+    """AJAX endpoint: return cities for a given region (state), with lat/lng for pin-drop maps."""
     from cities_light.models import City
     region_id = request.GET.get('region_id')
     if not region_id:
         return JsonResponse({'cities': []})
     try:
-        cities = City.objects.filter(region_id=region_id).order_by('name').values('id', 'name')
-        return JsonResponse({'cities': list(cities)})
+        cities = list(City.objects.filter(region_id=region_id).order_by('name').values(
+            'id', 'name', 'latitude', 'longitude'
+        ))
+        for c in cities:
+            lat, lng = c.get('latitude'), c.get('longitude')
+            c['lat'] = float(lat) if lat is not None else None
+            c['lng'] = float(lng) if lng is not None else None
+            del c['latitude']
+            del c['longitude']
+        return JsonResponse({'cities': cities})
     except Exception:
         return JsonResponse({'cities': []})
+
+
+def map_markers(request):
+    """
+    JSON endpoint for map markers. Returns jobs (and optionally applicant profiles)
+    with latitude/longitude for geolocation-based maps.
+    """
+    jobs = (
+        Job.objects.filter(is_active=True)
+        .exclude(latitude__isnull=True)
+        .exclude(longitude__isnull=True)
+        .select_related('recruiter')
+    )
+    job_pk = request.GET.get('job_id', '').strip()
+    markers = []
+    for job in jobs:
+        markers.append({
+            'type': 'job',
+            'id': job.pk,
+            'title': job.title,
+            'company': job.company,
+            'location': job.location or f"{job.city}, {job.state}".strip(', '),
+            'lat': float(job.latitude),
+            'lng': float(job.longitude),
+            'url': f'/jobs/{job.pk}/',
+        })
+    if job_pk and request.user.is_authenticated:
+        try:
+            job = Job.objects.get(pk=int(job_pk), recruiter=request.user)
+            from home.models import Profile
+            for app in job.applications.select_related('applicant').all():
+                profile = Profile.objects.filter(user=app.applicant).first()
+                if profile and profile.latitude and profile.longitude:
+                    markers.append({
+                        'type': 'applicant',
+                        'id': profile.user_id,
+                        'title': profile.display_name or app.applicant.username,
+                        'location': profile.location or '',
+                        'lat': float(profile.latitude),
+                        'lng': float(profile.longitude),
+                        'url': f'/profiles/{profile.user_id}/',
+                    })
+        except (Job.DoesNotExist, ValueError):
+            pass
+    return JsonResponse({'markers': markers})
 
 
 @login_required
@@ -122,7 +185,7 @@ def job_create(request):
         if form.is_valid():
             job = form.save(commit=False)
             job.recruiter = request.user
-            _save_city_state_from_form(job, form)
+            _save_city_state_from_form(job, form, request)
             job.save()
             return redirect('jobs:job_detail', pk=job.pk)
     else:
@@ -163,7 +226,7 @@ def job_edit(request, pk):
         form = JobForm(request.POST, instance=job)
         if form.is_valid():
             job = form.save(commit=False)
-            _save_city_state_from_form(job, form)
+            _save_city_state_from_form(job, form, request)
             job.save()
             return redirect('jobs:job_detail', pk=job.pk)
     else:
@@ -193,6 +256,8 @@ def job_applications(request, pk):
     q = request.GET.get("q", "").strip()
     skills = request.GET.get("skills", "").strip()
     location = request.GET.get("location", "").strip()
+    city = request.GET.get("city", "").strip()
+    state = request.GET.get("state", "").strip()
 
     if q:
         applications = applications.filter(
@@ -210,6 +275,10 @@ def job_applications(request, pk):
 
     if location:
         applications = applications.filter(applicant__profile__location__icontains=location)
+    if city:
+        applications = applications.filter(applicant__profile__city__icontains=city)
+    if state:
+        applications = applications.filter(applicant__profile__state__icontains=state)
 
     return render(request, "jobs/job_applications.html", {
         "job": job,
@@ -217,6 +286,8 @@ def job_applications(request, pk):
         "q": q,
         "skills": skills,
         "location": location,
+        "city": city,
+        "state": state,
     })
 
 

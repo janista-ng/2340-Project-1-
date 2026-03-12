@@ -23,6 +23,37 @@ from django.contrib.auth.decorators import login_required
 from .models import Profile
 from .forms import ProfileForm
 
+def _save_city_state_from_profile(profile, form, request=None):
+    """Extract city/state/lat/long from cities_light City selection and optional pin-drop. Save to profile."""
+    from cities_light.models import City
+    city_id = form.cleaned_data.get('city')
+    if not city_id:
+        return
+    try:
+        city_id = int(city_id)
+    except (TypeError, ValueError):
+        return
+    try:
+        city = City.objects.get(pk=city_id)
+        profile.city = city.name
+        profile.state = city.region.geoname_code or city.region.name if city.region else ''
+        lat = request.POST.get('latitude') if request else None
+        lng = request.POST.get('longitude') if request else None
+        if lat and lng:
+            try:
+                profile.latitude = float(lat)
+                profile.longitude = float(lng)
+            except (TypeError, ValueError):
+                if city.latitude and city.longitude:
+                    profile.latitude = city.latitude
+                    profile.longitude = city.longitude
+        elif city.latitude and city.longitude:
+            profile.latitude = city.latitude
+            profile.longitude = city.longitude
+    except City.DoesNotExist:
+        pass
+
+
 @login_required(login_url="login")
 def profile_view(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
@@ -31,6 +62,8 @@ def profile_view(request):
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
+            _save_city_state_from_profile(profile, form, request)
+            profile.save()
             return redirect("profile")
         edit_mode = True
     else:

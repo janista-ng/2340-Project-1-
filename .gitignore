@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 .venv/
+venv/
 db.sqlite3
 staticfiles/
 .DS_Store
