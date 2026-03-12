@@ -1,5 +1,6 @@
 from jobs.models import Job
 from home.models import Profile
+import math
 
 def parse_skills(skill_string):
     if not skill_string:
@@ -9,6 +10,22 @@ def parse_skills(skill_string):
         for s in skill_string.split(",")
         if s.strip()
     )
+
+def distance_miles(lat1, lon1, lat2, lon2):
+    R = 3959
+
+    lat1 = math.radians(lat1)
+    lon1 = math.radians(lon1)
+    lat2 = math.radians(lat2)
+    lon2 = math.radians(lon2)
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = math.sin(dlat/2)**2 + math.cos(lat1)*math.cos(lat2)*math.sin(dlon/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+    return R * c
 
 def recommend_candidates(job):
     seekers = Profile.objects.filter(role="job_seeker") 
@@ -37,14 +54,28 @@ def recommend_jobs(profile, limit=10):
     recommendations = []
 
     for job in jobs:
+
+        if (
+            job.latitude is None or
+            job.longitude is None
+        ) :
+            continue
+
         job_skills = parse_skills(job.skills)
 
         overlap = user_skills.intersection(job_skills)
         score = len(overlap)
 
-        if profile.location and job.location:
-            if profile.location.lower() in job.location.lower():
-                score += 2
+        distance = distance_miles(
+            profile.latitude,
+            profile.longitude,
+            job.latitude,
+            job.longitude
+        )
+        if distance > profile.commute_radius:
+            continue
+        else:
+            score += 3
         
         if job.remote == "remote":
             score += 1

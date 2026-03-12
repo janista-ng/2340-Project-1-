@@ -15,6 +15,7 @@ class Profile(models.Model):
     state = models.CharField(max_length=120, blank=True, default="")
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    commute_radius = models.IntegerField(default=50)
     profile_image = models.ImageField(upload_to="profile_images/", blank=True, null=True)
     about_me = models.TextField(blank=True)
     contact_email = models.EmailField(blank=True)

@@ -31,6 +31,7 @@ class ProfileForm(forms.ModelForm):
             "show_links",
             "display_name",
             "headline",
+            "commute_radius",
             "school_or_job",
             "profile_image",
             "about_me",
