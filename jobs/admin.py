@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import Job, Application
+from .models import Job, Application, SavedCandidateSearch
 from proj2.admin_utils import export_as_csv
+
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
@@ -29,6 +30,12 @@ class ApplicationAdmin(admin.ModelAdmin):
     list_display = ('job', 'applicant', 'status', 'applied_at')
     search_fields = ('job__title', 'applicant__username')
     list_filter = ('status',)
+
+@admin.register(SavedCandidateSearch)
+class SavedCandidateSearchAdmin(admin.ModelAdmin):
+    list_display = ("name", "job", "recruiter", "notify_on_new_matches", "created_at")
+    search_fields = ("name", "job__title", "recruiter__username")
+    list_filter = ("notify_on_new_matches", "created_at")
     actions = ("export_selected_applications",)
 
     @admin.action(description="Export selected applications to CSV")

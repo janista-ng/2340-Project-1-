@@ -12,6 +12,10 @@ def parse_skills(skill_string):
     )
 
 def distance_miles(lat1, lon1, lat2, lon2):
+
+    if None in (lat1, lon1, lat2, lon2):
+        return None
+    
     R = 3959
 
     lat1 = math.radians(lat1)
@@ -72,7 +76,7 @@ def recommend_jobs(profile, limit=10):
             job.latitude,
             job.longitude
         )
-        if distance > profile.commute_radius:
+        if distance is not None and profile.commute_radius is not None and distance > profile.commute_radius:
             continue
         else:
             score += 3

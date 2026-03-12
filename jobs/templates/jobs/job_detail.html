@@ -94,6 +94,30 @@
   .label {
     font-weight: bold;
   }
+
+  .map-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .map-card p {
+    margin-bottom: 8px;
+  }
+
+  #job-office-map {
+    height: 280px;
+    border: 1px solid #d9dee7;
+    border-radius: 10px;
+    margin-top: 10px;
+  }
+
+  .location-note {
+    font-size: 14px;
+    color: #666;
+  }
 </style>
 
 <div class="content-wrapper">
@@ -128,6 +152,37 @@
 
     {% if job.location %}
       <p><span class="label">Full Location:</span> {{ job.location }}</p>
+    {% endif %}
+
+    {% if job.has_coordinates %}
+      <div class="section map-card">
+        <h2>Office Location</h2>
+
+        {% if job.remote == "remote" %}
+          <p class="location-note">
+            This role is listed as remote, but the employer has also provided an office location pin.
+          </p>
+        {% elif job.remote == "hybrid" %}
+          <p class="location-note">
+            This hybrid role includes an office location pin so candidates can see where the in-person work is based.
+          </p>
+        {% else %}
+          <p class="location-note">
+            This pinned map shows the job’s office location.
+          </p>
+        {% endif %}
+
+        <p><span class="label">Pinned Location:</span> {{ job.location }}</p>
+        <div id="job-office-map"></div>
+      </div>
+    {% elif job.location %}
+      <div class="section map-card">
+        <h2>Office Location</h2>
+        <p class="location-note">
+          A precise map pin has not been added yet, but the job location is listed below.
+        </p>
+        <p><span class="label">Listed Location:</span> {{ job.location }}</p>
+      </div>
     {% endif %}
 
     {% if job.remote %}
@@ -177,4 +232,35 @@
     <p><a href="{% url 'login' %}">Log in</a></p>
   {% endif %}
 </div>
+
+{% if job.has_coordinates %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    (function() {
+      var lat = parseFloat("{{ job.latitude|default:'' }}");
+      var lng = parseFloat("{{ job.longitude|default:'' }}");
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        var map = L.map('job-office-map').setView([lat, lng], 14);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        L.marker([lat, lng])
+          .addTo(map)
+          .bindPopup(
+            "<strong>{{ job.title|escapejs }}</strong><br>{{ job.location|default:''|escapejs }}"
+          )
+          .openPopup();
+
+        setTimeout(function() {
+          map.invalidateSize();
+        }, 100);
+      }
+    })();
+  </script>
+{% endif %}
+
 {% endblock %}
