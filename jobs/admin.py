@@ -1,5 +1,7 @@
 from django.contrib import admin
 from .models import Job, Application, SavedCandidateSearch
+from proj2.admin_utils import export_as_csv
+
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
@@ -9,7 +11,7 @@ class JobAdmin(admin.ModelAdmin):
     )
     search_fields = ("title", "company", "skills", "city", "state", "recruiter__username")
     list_filter = ("is_active", "remote", "visa_sponsorship", "created_at")
-    actions = ("deactivate_jobs", "activate_jobs")
+    actions = ("deactivate_jobs", "activate_jobs", "export_selected_jobs")
 
     @admin.action(description="Deactivate selected jobs (hide from job list)")
     def deactivate_jobs(self, request, queryset):
@@ -18,7 +20,10 @@ class JobAdmin(admin.ModelAdmin):
     @admin.action(description="Activate selected jobs (show in job list)")
     def activate_jobs(self, request, queryset):
         queryset.update(is_active=True)
-
+    
+    @admin.action(description="Export selected jobs to CSV")
+    def export_selected_jobs(self, request, queryset):
+        return export_as_csv(self, request, queryset)
 
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
@@ -31,3 +36,8 @@ class SavedCandidateSearchAdmin(admin.ModelAdmin):
     list_display = ("name", "job", "recruiter", "notify_on_new_matches", "created_at")
     search_fields = ("name", "job__title", "recruiter__username")
     list_filter = ("notify_on_new_matches", "created_at")
+    actions = ("export_selected_applications",)
+
+    @admin.action(description="Export selected applications to CSV")
+    def export_selected_applications(self, request, queryset):
+        return export_as_csv(self, request, queryset)

@@ -118,7 +118,7 @@ def signup_view(request):
         if form.is_valid():
             user = form.save()
             
-            role = request.POST.get("role", "job_seeker") 
+            role = request.POST.get("role", "seeker") 
             Profile.objects.create(user=user, role=role)
             
             login(request, user)
