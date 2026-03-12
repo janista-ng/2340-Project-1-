@@ -330,8 +330,22 @@
             <label for="{{ form.school_or_job.id_for_label }}">Occupation</label>
             {{ form.school_or_job }} {{ form.school_or_job.errors }}
 
-            <label for="{{ form.location.id_for_label }}">Location</label>
-            {{ form.location }} {{ form.location.errors }}
+            <label for="id_region">State</label>
+            {{ form.region }} {{ form.region.errors }}
+
+            <label for="id_city">City</label>
+            <select name="city" id="id_city">
+              <option value="">-- Select state first --</option>
+            </select>
+            {{ form.city.errors }}
+
+            <div id="pin-drop-section" class="section" style="display:none;">
+              <div class="section-title">Adjust location (optional)</div>
+              <p class="pin-help" style="font-size:13px; color:#666; margin-bottom:8px;">Drag the pin to fine-tune your location (e.g., neighborhood or office). Helps with commute radius and maps.</p>
+              <div id="profile-pin-map" style="height:200px; border-radius:8px; border:1px solid #ccc;"></div>
+              <input type="hidden" name="latitude" id="id_latitude" value="{{ profile.latitude|default:'' }}">
+              <input type="hidden" name="longitude" id="id_longitude" value="{{ profile.longitude|default:'' }}">
+            </div>
 
             <div class="section">
               <div class="section-title">About Me</div>
@@ -518,6 +532,90 @@
             </div>
           </div>
         </form>
+
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+        <script>
+        (function() {
+          var regionSelect = document.getElementById('id_region');
+          var citySelect = document.getElementById('id_city');
+          var pinSection = document.getElementById('pin-drop-section');
+          var latInput = document.getElementById('id_latitude');
+          var lngInput = document.getElementById('id_longitude');
+          var citiesUrl = "{% url 'jobs:cities_by_region' %}";
+          var initialCityId = "{{ form.initial.city|default:'' }}";
+          var initialLat = "{{ profile.latitude|default:'' }}";
+          var initialLng = "{{ profile.longitude|default:'' }}";
+          var pinMap = null;
+          var pinMarker = null;
+          var cityData = {};
+
+          function loadCities(regionId) {
+            citySelect.innerHTML = '<option value="">-- Select state first --</option>';
+            pinSection.style.display = 'none';
+            if (pinMap) { pinMap.remove(); pinMap = null; pinMarker = null; }
+            if (!regionId) return;
+            citySelect.innerHTML = '<option value="">Loading...</option>';
+            fetch(citiesUrl + '?region_id=' + encodeURIComponent(regionId))
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                citySelect.innerHTML = '<option value="">-- Select city --</option>';
+                cityData = {};
+                data.cities.forEach(function(c) {
+                  var opt = document.createElement('option');
+                  opt.value = c.id;
+                  opt.textContent = c.name;
+                  opt.dataset.lat = c.lat != null ? c.lat : '';
+                  opt.dataset.lng = c.lng != null ? c.lng : '';
+                  if (initialCityId && String(c.id) === String(initialCityId)) opt.selected = true;
+                  citySelect.appendChild(opt);
+                  cityData[c.id] = { lat: c.lat, lng: c.lng };
+                });
+                if (initialCityId) showPinMap();
+              })
+              .catch(function() {
+                citySelect.innerHTML = '<option value="">-- Error loading cities --</option>';
+              });
+          }
+
+          function showPinMap() {
+            var cid = citySelect.value;
+            var lat, lng;
+            if (initialLat && initialLng && parseFloat(initialLat) && parseFloat(initialLng)) {
+              lat = parseFloat(initialLat);
+              lng = parseFloat(initialLng);
+              initialLat = initialLng = '';
+            } else if (cid && cityData[cid] && cityData[cid].lat != null && cityData[cid].lng != null) {
+              lat = cityData[cid].lat;
+              lng = cityData[cid].lng;
+            } else {
+              pinSection.style.display = 'none';
+              return;
+            }
+            pinSection.style.display = 'block';
+            latInput.value = lat;
+            lngInput.value = lng;
+            if (pinMap) { pinMap.remove(); pinMap = null; pinMarker = null; }
+            pinMap = L.map('profile-pin-map').setView([lat, lng], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(pinMap);
+            pinMarker = L.marker([lat, lng], { draggable: true }).addTo(pinMap);
+            pinMarker.on('dragend', function() {
+              var p = pinMarker.getLatLng();
+              latInput.value = p.lat.toFixed(6);
+              lngInput.value = p.lng.toFixed(6);
+            });
+          }
+
+          if (regionSelect) {
+            regionSelect.addEventListener('change', function() {
+              initialCityId = '';
+              loadCities(regionSelect.value);
+            });
+            citySelect.addEventListener('change', showPinMap);
+            if (regionSelect.value) loadCities(regionSelect.value);
+          }
+        })();
+        </script>
 
       {% else %}
         <div class="profile-row">

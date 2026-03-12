@@ -18,9 +18,12 @@ When posting or editing a job, recruiters select **State** first, then **City** 
 
 ### What was implemented
 
-- **State dropdown** → US regions from django-cities-light
+- **State dropdown** → US regions from django-cities-light (Jobs and Profiles)
 - **City dropdown** → Loaded via AJAX when state is selected (`GET /jobs/cities/?region_id=X`)
-- **Latitude/longitude** → Stored automatically when a city is selected (for future map features)
+- **Latitude/longitude** → Stored automatically when a city is selected (Job and Profile models)
+- **Profile location** → Job seekers and recruiters also use State/City dropdowns for geolocation
+- **Optional pin-drop** → After selecting city, users can drag a pin to fine-tune location (neighborhood, office). Helps with commute radius and multiple listings in one city.
+- **Map markers API** → `GET /jobs/map-markers/` returns JSON with jobs (and applicants when `?job_id=X`) that have lat/long for map rendering
 
 ### Setup (first-time or new clone)
 
@@ -60,32 +63,32 @@ This project is intended to challenge you to think about multiple perspectives (
 
 ### Job Seeker Stories
 
-- [ ] As a Job Seeker, I want to create a profile with my headline, skills, education, work experience, and links so recruiters can learn about me.
-- [ ] As a Job Seeker, I want to search for jobs with filters (title, skills, location, salary range, remote/on-site, visa sponsorship) so I can find opportunities that match my needs.
-- [ ] As a Job Seeker, I want to apply to a job with one click and include a tailored note so my application feels personalized.
-- [ ] As a Job Seeker, I want to track the status of my applications (Applied ? Review ? Interview ? Offer ? Closed) so I know where I stand.
-- [ ] As a Job Seeker, I want to set privacy options on my profile so I control what recruiters can see.
-- [ ] As a Job Seeker, I want to receive recommendations for jobs based on my skills so I discover opportunities I might have missed.
-- [ ] As a Job Seeker, I want to view job postings on an interactive map so I can see which ones are near me.
+- [x] As a Job Seeker, I want to create a profile with my headline, skills, education, work experience, and links so recruiters can learn about me.
+- [x] As a Job Seeker, I want to search for jobs with filters (title, skills, location, salary range, remote/on-site, visa sponsorship) so I can find opportunities that match my needs.
+- [x] As a Job Seeker, I want to apply to a job with one click and include a tailored note so my application feels personalized.
+- [x] As a Job Seeker, I want to track the status of my applications (Applied → Review → Interview → Offer → Closed) so I know where I stand.
+- [x] As a Job Seeker, I want to set privacy options on my profile so I control what recruiters can see.
+- [x] As a Job Seeker, I want to receive recommendations for jobs based on my skills so I discover opportunities I might have missed.
+- [x] As a Job Seeker, I want to view job postings on an interactive map so I can see which ones are near me.
 - [ ] As a Job Seeker, I want to filter jobs on the map by distance from my current location so I can prioritize nearby opportunities.
 - [ ] As a Job Seeker, I want to set a preferred commute radius (e.g., 10 miles) on the map so I only see jobs within a reasonable travel distance.
 
 ### Recruiter Stories
 
-- [ ] As a Recruiter, I want to post and edit job roles so candidates can apply to my openings.
-- [ ] As a Recruiter, I want to search for candidates by skills, location, and projects so I can find talent that fits my positions.
-- [ ] As a Recruiter, I want to organize applicants in a pipeline (e.g., a Kanban board) so I can easily manage hiring stages.
-- [ ] As a Recruiter, I want to message candidates inside the platform so I can contact them without the use of personal emails.
+- [x] As a Recruiter, I want to post and edit job roles so candidates can apply to my openings.
+- [x] As a Recruiter, I want to search for candidates by skills, location, and projects so I can find talent that fits my positions.
+- [x] As a Recruiter, I want to organize applicants in a pipeline (e.g., a Kanban board) so I can easily manage hiring stages.
+- [x] As a Recruiter, I want to message candidates inside the platform so I can contact them without the use of personal emails.
 - [ ] As a Recruiter, I want to email candidates through the platform so I can reach out to them through their personal emails.
 - [ ] As a Recruiter, I want to save a candidate search and get notified about new matches so I don't have to repeat the same queries.
-- [ ] As a Recruiter, I want to receive candidate recommendations for my job postings so I find qualified applicants faster.
+- [x] As a Recruiter, I want to receive candidate recommendations for my job postings so I find qualified applicants faster.
 - [ ] As a Recruiter, I want to pin my job posting's office location on a map so candidates know exactly where the job is based.
 - [ ] As a Recruiter, I want to see clusters of applicants by location on a map so I understand where most candidates are coming from.
 
 ### Administrator Stories
 
-- [ ] As an Administrator, I want to manage users and roles so the platform remains fair and safe.
-- [ ] As an Administrator, I want to moderate or remove job posts so the platform stays free of spam or abuse.
+- [x] As an Administrator, I want to manage users and roles so the platform remains fair and safe.
+- [x] As an Administrator, I want to moderate or remove job posts so the platform stays free of spam or abuse.
 - [ ] As an Administrator, I want to export data (CSV) for reporting purposes so stakeholders can analyze usage.
 
 ---
@@ -101,6 +104,7 @@ venv\Scripts\activate          # Windows
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py cities_light  # Populate US cities (optional, ~5–10 min)
+python manage.py seed_dummy_data --clear  # Optional: dummy users, jobs, applications (password: testpass123)
 ```
 
 **Each time you work:**

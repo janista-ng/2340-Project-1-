@@ -13,11 +13,25 @@
     overflow-y: auto; 
     padding: 25px;
     height: 100%;
-  } .map-panel {
+  }   .map-panel {
     border-left: 1px solid #ddd; 
-    padding: 25px; 
+    padding: 0;
     background: #ffffff;
-    height: 100%; 
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .map-panel h2 {
+    margin: 0;
+    padding: 16px 20px;
+    font-size: 18px;
+    color: #4f7cac;
+    flex-shrink: 0;
+  }
+  #job-map {
+    flex: 1;
+    min-height: 300px;
   }
   .job-card {
     background: #f9fafb;
@@ -124,12 +138,62 @@
   {% endif %}
   </div> 
   
-  <div class="map-panel">
+  <div class="map-panel" data-map-markers-url="{% url 'jobs:map_markers' %}">
     <h2>Map Search</h2>
-    <p>Map Coming Soon</p>
+    <div id="job-map"></div>
+    <p id="map-empty-msg" style="display:none; padding:20px; color:#666;">No job locations to display. Jobs with a selected city will appear here.</p>
   </div>
 
 </div> 
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js" crossorigin=""></script>
+
+<script>
+(function() {
+  var mapEl = document.getElementById("job-map");
+  var url = document.querySelector(".map-panel").getAttribute("data-map-markers-url");
+  if (!mapEl || !url) return;
+
+  var map = L.map("job-map").setView([39.8283, -98.5795], 4);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(map);
+
+  var clusters = L.markerClusterGroup();
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var jobMarkers = (data.markers || []).filter(function(m) { return m.type === "job"; });
+      if (jobMarkers.length === 0) {
+        document.getElementById("map-empty-msg").style.display = "block";
+        return;
+      }
+      var esc = function(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
+      jobMarkers.forEach(function(m) {
+        var marker = L.marker([m.lat, m.lng]);
+        var popup = "<strong>" + esc(m.title || "Job") + "</strong><br>" +
+          (m.company ? esc(m.company) + "<br>" : "") +
+          (m.location ? esc(m.location) + "<br>" : "") +
+          (m.url ? '<a href="' + esc(m.url) + '">View Job</a>' : "");
+        marker.bindPopup(popup);
+        clusters.addLayer(marker);
+      });
+      map.addLayer(clusters);
+      var b = clusters.getBounds();
+      if (b.isValid()) {
+        map.fitBounds(b, { padding: [20, 20] });
+      }
+    })
+    .catch(function() {
+      document.getElementById("map-empty-msg").style.display = "block";
+      document.getElementById("map-empty-msg").textContent = "Could not load job locations.";
+    });
+})();
+</script>
 
 {% if user.is_authenticated and user_profile.role == "job_seeker" %}
 <script>

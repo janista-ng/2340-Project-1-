@@ -11,6 +11,10 @@ class Profile(models.Model):
     display_name = models.CharField(max_length=80, blank=True)
     school_or_job = models.CharField(max_length=120, blank=True)
     location = models.CharField(max_length=120, blank=True)
+    city = models.CharField(max_length=120, blank=True, default="")
+    state = models.CharField(max_length=120, blank=True, default="")
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     profile_image = models.ImageField(upload_to="profile_images/", blank=True, null=True)
     about_me = models.TextField(blank=True)
     contact_email = models.EmailField(blank=True)
@@ -37,6 +41,15 @@ class Profile(models.Model):
     show_work_experience = models.BooleanField(default=True)
     show_links = models.BooleanField(default=True)
 
+    def save(self, *args, **kwargs):
+        """Sync location display string from city/state when set."""
+        if self.city and self.state:
+            self.location = f"{self.city}, {self.state}"
+        elif self.city:
+            self.location = self.city
+        elif self.state:
+            self.location = self.state
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} Profile"
